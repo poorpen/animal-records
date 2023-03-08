@@ -54,7 +54,7 @@ class UpdateAccount(AccountUseCase):
         try:
             await self._uow.account_repo.update_account(account)
             await self._uow.commit()
-        except (AccountAlreadyExist, AccountNotFoundByID):
+        except AccountAlreadyExist:
             await self._uow.rollback()
             raise
         return self._mapper.load(AccountDTO, account)

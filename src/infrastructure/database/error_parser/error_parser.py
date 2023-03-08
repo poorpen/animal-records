@@ -24,4 +24,4 @@ class ErrorParser:
     def parse_error(self, entity: Entity, exception: IntegrityError):
         database_column = exception.__cause__.__cause__.constraint_name
         returner = self._get_returner(type(entity), database_column)
-        return returner
+        return returner.return_exception(entity)

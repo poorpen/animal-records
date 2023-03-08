@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from src.domain.animal.value_objects.gender import Gender
 from src.domain.animal.value_objects.life_status import LifeStatus
 from src.domain.animal.entities.animal import Animal
+from src.domain.animal.entities.type_of_specific_animal import TypeOfSpecificAnimal
 
 from src.application.animal.dto.animal import AnimalDTO
 from src.application.animal.dto.animal_visited_location import AnimalVisitedLocationDTO
@@ -14,6 +15,7 @@ from src.application.animal.exceptions.animal import AnimalNotFound
 from src.application.animal.interfaces.repo.animal_visited_location_repo import IAnimalVisitedLocationRepo, \
     IAnimalVisitedLocationReader
 from src.application.animal.interfaces.repo.animal_repo import IAnimalRepo, IAnimalReader
+from src.infrastructure.database.models import TypeOfSpecificAnimalDB
 
 from src.infrastructure.database.repo.common.base_repo import SQLAlchemyRepo
 from src.infrastructure.database.models.animal import AnimalDB
@@ -24,20 +26,25 @@ from src.infrastructure.database.repo.common.base_query_bilder import BaseQueryB
 class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
 
     async def add_animal(self, animal: Animal) -> int:
-        sql = insert(AnimalDB).where(weight=animal.weight,
-                                     length=animal.length,
-                                     height=animal.height,
-                                     gender=animal.gender,
-                                     life_status=animal.life_status,
-                                     chipping_datetime=animal.chipping_datetime,
-                                     chipping_location_id=animal.chipping_location_id,
-                                     chipper_id=animal.chipper_id,
-                                     death_datetime=animal.death_datetime).returning(AnimalDB.id)
+        sql = insert(AnimalDB).values(weight=animal.weight,
+                                      length=animal.length,
+                                      height=animal.height,
+                                      gender=animal.gender,
+                                      life_status=animal.life_status,
+                                      chipping_datetime=animal.chipping_datetime,
+                                      chipping_location_id=animal.chipping_location_id,
+                                      chipper_id=animal.chipper_id,
+                                      death_datetime=animal.death_datetime).returning(AnimalDB.id)
+
         try:
             result = await self._session.execute(sql)
         except IntegrityError as exc:
             raise self._error_parser.parse_error(animal, exc)
+
         row_id = result.scalar()
+
+        await self._add_animal_types(row_id, animal.animal_types)
+
         return row_id
 
     async def get_animal_by_id(self, animal_id: int) -> Animal:
@@ -67,6 +74,15 @@ class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
         result = await self._session.execute(sql)
         check_result = result.scalar()
         return check_result
+
+    async def _add_animal_types(self, animal_id: int, current_animal_type: List[TypeOfSpecificAnimal]):
+        for this_animal_type in current_animal_type:
+            try:
+                await self._session.execute(
+                    insert(TypeOfSpecificAnimalDB).values(animal_id=animal_id, animal_type_id=this_animal_type)
+                )
+            except IntegrityError as exc:
+                raise self._error_parser.parse_error(this_animal_type, exc)
 
 
 class AnimalReader(SQLAlchemyRepo, IAnimalReader, IAnimalVisitedLocationReader):

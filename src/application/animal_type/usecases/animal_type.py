@@ -42,7 +42,7 @@ class ChangeAnimalType(AnimalTypeUseCase):
         try:
             await self._uow.animal_type_repo.change_type(animal_type)
             await self._uow.commit()
-        except (AnimalTypeNotFound, AnimalTypeAlreadyExist):
+        except AnimalTypeAlreadyExist:
             await self._uow.rollback()
             raise
         return self._mapper.load(AnimalTypeDTO, animal_type)

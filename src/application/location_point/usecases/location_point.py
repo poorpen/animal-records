@@ -48,7 +48,7 @@ class ChangeLocationPointUseCase(LocationPointUseCase):
         )
         try:
             await self._uow.location_point_repo.change_location_point(location_point)
-        except (PointAlreadyExist, PointNotFound):
+        except PointAlreadyExist:
             await self._uow.rollback()
             raise
         return self._mapper.load(LocationPointDTO, location_point)

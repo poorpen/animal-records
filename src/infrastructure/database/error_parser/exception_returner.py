@@ -14,5 +14,5 @@ class ExceptionReturner:
             return True
         return False
 
-    def return_exception(self, entity: Entity):
-        return self.func(entity)
+    def return_exception(self, exception_value):
+        return self.func(exception_value)

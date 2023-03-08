@@ -12,6 +12,7 @@ from src.application.location_point.exceptions.location_point import PointNotFou
 from src.application.animal.interfaces.uow.animal_uow import IAnimalUoW
 from src.application.animal.dto.animal import AnimalDTO, CreateAnimalDTO, SearchParametersDTO, UpdateAnimalDTO
 from src.application.animal.exceptions.animal import AnimalHaveDuplicateTypes, AnimalNotFound
+from src.domain.animal.entities.type_of_specific_animal import TypeOfSpecificAnimal
 
 
 class AnimalUseCase(ABC):
@@ -24,8 +25,10 @@ class AnimalUseCase(ABC):
 class CreateAnimal(AnimalUseCase):
 
     async def __call__(self, animal_dto: CreateAnimalDTO) -> AnimalDTO:
+        types_of_specific_animal = [TypeOfSpecificAnimal.create(animal_type_id) for animal_type_id in
+                                    animal_dto.animal_types]
         animal = Animal.create(
-            animal_types_ids=animal_dto.animal_types,
+            animal_types=types_of_specific_animal,
             weight=animal_dto.weight,
             length=animal_dto.length,
             height=animal_dto.height,
@@ -33,9 +36,9 @@ class CreateAnimal(AnimalUseCase):
             chipping_location_id=animal_dto.chipping_location_id,
             chipper_id=animal_dto.chipper_id,
         )
-        duplicate_type_id = animal.check_duplicate_types()
-        if duplicate_type_id:
-            raise AnimalHaveDuplicateTypes(duplicate_type_id)
+        type_of_specific_animal = animal.check_duplicate_types()
+        if type_of_specific_animal:
+            raise AnimalHaveDuplicateTypes(type_of_specific_animal.animal_type_id)
         try:
             animal_id = await self._uow.animal_repo.add_animal(animal)
             await self._uow.commit()
@@ -63,7 +66,7 @@ class UpdateAnimal(AnimalUseCase):
         try:
             await self._uow.animal_repo.update_animal(animal)
             await self._uow.commit()
-        except (AnimalNotFound, AccountNotFoundByID, PointNotFound):
+        except (AccountNotFoundByID, PointNotFound):
             await self._uow.rollback()
             raise
         return self._mapper.load(AnimalDTO, animal)
@@ -116,4 +119,3 @@ class AnimalService:
 
     async def delete_animal(self, animal_id: int) -> None:
         return await DeleteAnimal(self._uow, self._mapper)(animal_id)
-

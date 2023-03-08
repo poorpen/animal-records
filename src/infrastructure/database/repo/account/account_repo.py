@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import insert, select, delete, func
+from sqlalchemy import insert, select, delete
 from sqlalchemy.exc import IntegrityError
 
 from src.domain.account.entities.account import Account
@@ -48,7 +48,7 @@ class AccountRepo(SQLAlchemyRepo, IAccountRepo):
         try:
             await self._session.merge(account_db)
         except IntegrityError as exc:
-            raise self._error_parser.parse_error(account, exc)
+            self._error_parser.parse_error(account, exc)
 
     async def delete_account(self, account_id: int) -> None:
         sql = delete(AccountDB).where(AccountDB.id == account_id).returning(AccountDB.id)
@@ -85,7 +85,6 @@ class AccountReader(SQLAlchemyRepo, IAccountReader):
                                             offset=offset,
                                             limit=limit,
                                             )
-        print(type(sql))
         result = await self._session.execute(sql)
         models = result.scalars().all()
         return self._mapper.load(AccountDTO, models)

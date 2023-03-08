@@ -10,6 +10,8 @@ from src.domain.common.constants.empty import Empty
 from src.domain.common.utils.data_filter import data_filter
 
 from src.domain.animal.entities.animal_visited_location import AnimalVisitedLocation
+from src.domain.animal.entities.type_of_specific_animal import TypeOfSpecificAnimal
+
 from src.domain.animal.value_objects.gender import Gender
 from src.domain.animal.value_objects.life_status import LifeStatus
 from src.domain.animal.exceptions.animal import AnimalIsDead
@@ -25,7 +27,7 @@ from src.domain.animal.exceptions.type_specific_animal import \
 @dataclass
 class Animal(Entity, EntityMerge):
     id: int
-    animal_types_ids: List[int]
+    animal_types: List[TypeOfSpecificAnimal]
     weight: float
     length: float
     height: float
@@ -38,7 +40,7 @@ class Animal(Entity, EntityMerge):
     death_datetime: Empty | datetime
 
     @staticmethod
-    def create(animal_types_ids: List[int],
+    def create(animal_types: List[TypeOfSpecificAnimal],
                weight: float,
                length: float,
                height: float,
@@ -52,7 +54,7 @@ class Animal(Entity, EntityMerge):
                death_datetime: datetime | None = None,
                ) -> Animal:
 
-        return Animal(id=animal_id, animal_types_ids=animal_types_ids, weight=weight, length=length, height=height,
+        return Animal(id=animal_id, animal_types=animal_types, weight=weight, length=length, height=height,
                       gender=gender, life_status=life_status, chipping_datetime=chipping_datetime,
                       chipping_location_id=chipping_location_id, chipper_id=chipper_id,
                       visited_locations=visited_locations if visited_locations else [],
@@ -66,7 +68,7 @@ class Animal(Entity, EntityMerge):
                life_status: LifeStatus | Empty = Empty.UNSET,
                chipper_id: int | Empty = Empty.UNSET,
                chipping_location_id: int | Empty = Empty.UNSET,
-               animal_types_ids: List[int] | Empty = Empty.UNSET,
+               animal_types_ids: List[TypeOfSpecificAnimal] | Empty = Empty.UNSET,
                visited_location: List[AnimalVisitedLocation] | Empty = Empty.UNSET
                ) -> None:
         filtered_args = data_filter(weight=weight, length=length, height=height, gender=gender, life_status=life_status,
@@ -77,10 +79,10 @@ class Animal(Entity, EntityMerge):
         if self.life_status == LifeStatus.DEAD:
             self.death_datetime = datetime.utcnow()
 
-    def check_duplicate_types(self) -> int:
-        for type_id in self.animal_types_ids:
-            if self.animal_types_ids.count(type_id) > 1:
-                return type_id
+    def check_duplicate_types(self) -> TypeOfSpecificAnimal:
+        for type_of_this_animal in self.animal_types:
+            if self.animal_types.count(type_of_this_animal) > 1:
+                return type_of_this_animal
 
     def add_visited_location(self, visited_location: AnimalVisitedLocation) -> None:
         if self.life_status == LifeStatus.DEAD:
@@ -120,24 +122,34 @@ class Animal(Entity, EntityMerge):
             self.visited_locations.remove(next_visited_location)
         self.visited_locations.remove(visited_location)
 
-    def add_animal_type(self, type_id: int) -> None:
-        if type_id in self.animal_types_ids:
-            raise AnimalAlreadyHaveThisType(self.id, type_id)
-        self.update(animal_types_ids=[type_id])
+    def add_animal_type(self, type_of_this_animal: TypeOfSpecificAnimal) -> None:
+        if type_of_this_animal in self.animal_types:
+            raise AnimalAlreadyHaveThisType(self.id, type_of_this_animal.animal_type_id)
+        self.update(animal_types_ids=[type_of_this_animal])
 
-    def change_animal_type(self, old_type_id, new_type_id) -> None:
-        if old_type_id in self.animal_types_ids and new_type_id in self.animal_types_ids:
-            raise AnimalAlreadyHaveThisTypes(self.id, old_type_id, new_type_id)
-        elif new_type_id in self.animal_types_ids:
-            raise AnimalAlreadyHaveThisType(self.id, new_type_id)
-        elif old_type_id not in self.animal_types_ids:
-            raise AnimalNotHaveThisType(self.id, old_type_id)
-        type_index = self.animal_types_ids.index(old_type_id)
-        self.animal_types_ids[type_index] = new_type_id
+    def get_animal_type(self, animal_type_id):
+        for animal_type in self.animal_types:
+            if animal_type.animal_type_id == animal_type_id:
+                return animal_type_id
+        raise AnimalNotHaveThisType(self.id, animal_type_id)
 
-    def delete_animal_type(self, type_id: int) -> None:
-        if len(self.animal_types_ids) == 1 and self.animal_types_ids[0] == type_id:
-            raise AnimalOnlyHasThisType(self.id, type_id)
-        elif type_id not in self.animal_types_ids:
-            raise AnimalNotHaveThisType(self.id, type_id)
-        self.animal_types_ids.remove(type_id)
+    def change_animal_type(self,
+                           old_type_of_this_animal: TypeOfSpecificAnimal,
+                           new_type_of_this_animal: TypeOfSpecificAnimal
+                           ) -> None:
+        if old_type_of_this_animal in self.animal_types and new_type_of_this_animal in self.animal_types:
+            raise AnimalAlreadyHaveThisTypes(self.id, old_type_of_this_animal.animal_type_id,
+                                             new_type_of_this_animal.animal_type_id)
+        elif new_type_of_this_animal in self.animal_types:
+            raise AnimalAlreadyHaveThisType(self.id, new_type_of_this_animal.animal_type_id)
+
+        type_index = self.animal_types.index(old_type_of_this_animal)
+        self.animal_types[type_index] = new_type_of_this_animal
+
+    def delete_animal_type(self, animal_type_id: int) -> None:
+        type_of_this_animal = self.get_animal_type(animal_type_id)
+        if len(self.animal_types) == 1 and self.animal_types[0] == type_of_this_animal:
+            raise AnimalOnlyHasThisType(self.id, type_of_this_animal.animal_type_id)
+        elif type_of_this_animal not in self.animal_types:
+            raise AnimalNotHaveThisType(self.id, type_of_this_animal.animal_type_id)
+        self.animal_types.remove(type_of_this_animal)
