@@ -37,7 +37,7 @@ class AddTypeToSpecificAnimal(TypeOfSpecificAnimalUseCse):
 
 class ChangeTypeOfSpecificAnimal(TypeOfSpecificAnimalUseCse):
 
-    async def __call__(self, animal_type_dto: ChangeTypeOfSpecificAnimalDTO):
+    async def __call__(self, animal_type_dto: ChangeTypeOfSpecificAnimalDTO) -> AnimalDTO:
         animal = await self._uow.animal_repo.get_animal_by_id(animal_type_dto.animal_id)
         old_type = animal.get_animal_type(animal_type_dto.old_type_id)
         new_type = TypeOfSpecificAnimal.create(animal_id=animal_type_dto.animal_id,
@@ -67,8 +67,8 @@ class TypeOfSpecificAnimalService:
         self._uow = uow
         self._mapper = mapper
 
-    async def add_type(self, animal_id: int, type_id: int):
-        await AddTypeToSpecificAnimal(self._uow, self._mapper)(animal_id, type_id)
+    async def add_type(self, animal_type_dto: AddTypeOfSpecificAnimalDTO):
+        await AddTypeToSpecificAnimal(self._uow, self._mapper)(animal_type_dto)
 
     async def change_type(self, animal_type_dto: ChangeTypeOfSpecificAnimalDTO):
         if not self._uow.animal_type_repo.check_exist(animal_type_dto.old_type_id):

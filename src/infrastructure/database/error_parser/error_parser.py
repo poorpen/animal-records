@@ -10,16 +10,15 @@ from src.infrastructure.database.error_parser.exception_returner import Exceptio
 class ErrorParser:
 
     def __init__(self):
-        self._exception_returners: Dict[Type[Entity], List[ExceptionReturner]] = dict()
+        self._exception_returners: List[ExceptionReturner] = []
 
     def _get_returner(self, entity: Type[Entity], database_column: str):
-        returners = self._exception_returners[entity]
-        for returner in returners:
-            if returner.check(database_column):
+        for returner in self._exception_returners:
+            if returner.check(database_column, entity):
                 return returner
 
     def add_exception_returner(self, entity: Type[Entity], func, database_column):
-        self._exception_returners[entity].append(ExceptionReturner(func=func, database_column=database_column))
+        self._exception_returners.append(ExceptionReturner(func=func, database_column=database_column, entity=entity))
 
     def parse_error(self, entity: Entity, exception: IntegrityError):
         database_column = exception.__cause__.__cause__.constraint_name

@@ -12,10 +12,10 @@ class BaseLocationPointDTO(DTO):
 class CreateLocationPointDTO(BaseLocationPointDTO):
     ...
 
-
+@dataclass
 class LocationPointDTO(BaseLocationPointDTO):
     id: int
 
-
+@dataclass
 class ChangeLocationPointDTO(BaseLocationPointDTO):
     id: int

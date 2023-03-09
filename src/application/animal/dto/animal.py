@@ -42,6 +42,7 @@ class UpdateAnimalDTO(BaseAnimalDTO):
     id: int
 
 
+@dataclass
 class AnimalDTO(BaseAnimalDTO):
     id: int
     animal_types: List[int]

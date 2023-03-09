@@ -62,4 +62,4 @@ class AnimalTypeReader(SQLAlchemyRepo, IAnimalTypeReader):
         model = result.scalar()
         if not model:
             raise AnimalTypeNotFound(animal_type_id)
-        return self._mapper.load(AnimalTypeDB, model)
+        return self._mapper.load(AnimalTypeDTO, model)
