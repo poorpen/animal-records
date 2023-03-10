@@ -8,19 +8,27 @@ from src.domain.animal.value_objects.gender import Gender
 from src.domain.animal.value_objects.life_status import LifeStatus
 from src.domain.animal.entities.animal import Animal
 from src.domain.animal.entities.type_of_specific_animal import TypeOfSpecificAnimal
+from src.domain.animal.entities.animal_visited_location import AnimalVisitedLocation
 
-from src.application.animal.dto.animal import AnimalDTO
-from src.application.animal.dto.animal_visited_location import AnimalVisitedLocationDTO
+from src.application.common.exceptions.application import ApplicationException
+from src.application.account.exceptions.account import AccountNotFoundByID
+from src.application.location_point.exceptions.location_point import PointNotFound
+
 from src.application.animal.exceptions.animal import AnimalNotFound
+
+from src.application.animal.dto.animal import AnimalDTO, AnimalDTOs
+from src.application.animal.dto.animal_visited_location import AnimalVisitedLocationDTOs
 from src.application.animal.interfaces.repo.animal_visited_location_repo import IAnimalVisitedLocationRepo, \
     IAnimalVisitedLocationReader
 from src.application.animal.interfaces.repo.animal_repo import IAnimalRepo, IAnimalReader
-from src.infrastructure.database.models import TypeOfSpecificAnimalDB
 
-from src.infrastructure.database.repo.common.base_repo import SQLAlchemyRepo
+from src.infrastructure.database.models.type_of_specific_animal import TypeOfSpecificAnimalDB
 from src.infrastructure.database.models.animal import AnimalDB
 from src.infrastructure.database.models.animal_visited_location import AnimalVisitedLocationDB
-from src.infrastructure.database.repo.common.base_query_bilder import BaseQueryBuilder
+
+from src.infrastructure.database.repo.common.base_repo import SQLAlchemyRepo
+from src.infrastructure.database.repo.animal.animal_query_builder import GetAnimalQuery
+from src.infrastructure.database.repo.animal.visited_location_query_builder import GetVisitedLocationQuery
 
 
 class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
@@ -39,7 +47,7 @@ class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
         try:
             result = await self._session.execute(sql)
         except IntegrityError as exc:
-            raise self._error_parser.parse_error(animal, exc)
+            raise self._error_parser(animal, exc)
 
         row_id = result.scalar()
 
@@ -60,7 +68,7 @@ class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
         try:
             await self._session.merge(anima_db)
         except IntegrityError as exc:
-            raise self._error_parser.parse_error(animal, exc)
+            raise self._error_parser(animal, exc)
 
     async def delete_animal(self, animal_id: int) -> None:
         sql = delete(AnimalDB).where(AnimalDTO.id == animal_id).returning(AnimalDB.id)
@@ -82,16 +90,24 @@ class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
                     insert(TypeOfSpecificAnimalDB).values(animal_id=animal_id, animal_type_id=this_animal_type)
                 )
             except IntegrityError as exc:
-                raise self._error_parser.parse_error(this_animal_type, exc)
+                raise self._error_parser(this_animal_type, exc)
+
+    @staticmethod
+    def _error_parser(entity: Animal | TypeOfSpecificAnimalDB | AnimalVisitedLocation,
+                      exception: IntegrityError) -> ApplicationException:
+        database_column = exception.__cause__.__cause__.constraint_name
+        if database_column == 'animals_chipper_id_fkey':
+            return AccountNotFoundByID(entity.chipper_id)
+        elif database_column == 'animals_chipping_location_id_fkey':
+            return PointNotFound(entity.chipping_location_id)
 
 
 class AnimalReader(SQLAlchemyRepo, IAnimalReader, IAnimalVisitedLocationReader):
 
-    def __init__(self, anima_query_builder: BaseQueryBuilder,
-                 visited_location: BaseQueryBuilder, **kwargs):
-        self.animal_query_builder = anima_query_builder
-        self.visited_location_query_builder = visited_location
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.animal_query_builder = GetAnimalQuery()
+        self.visited_location_query_builder = GetVisitedLocationQuery()
 
     async def get_animal_by_id(self, animal_id: int) -> AnimalDTO:
         sql = select(AnimalDB).where(AnimalDTO.id == animal_id)
@@ -110,7 +126,7 @@ class AnimalReader(SQLAlchemyRepo, IAnimalReader, IAnimalVisitedLocationReader):
                            gender: Gender,
                            limit: int,
                            offset: int
-                           ) -> List[AnimalDTO]:
+                           ) -> AnimalDTOs:
 
         sql = self.animal_query_builder.get_query(start_datetime=start_datetime,
                                                   end_datetime=end_datetime,
@@ -123,7 +139,7 @@ class AnimalReader(SQLAlchemyRepo, IAnimalReader, IAnimalVisitedLocationReader):
 
         result = await self._session.execute(sql)
         models = result.scalars().all()
-        return self._mapper.load(AnimalDB, models)
+        return self._mapper.load(AnimalDTOs, models)
 
     async def get_visited_locations(self,
                                     animal_id: int,
@@ -131,7 +147,7 @@ class AnimalReader(SQLAlchemyRepo, IAnimalReader, IAnimalVisitedLocationReader):
                                     end_datetime: datetime,
                                     limit: int,
                                     offset: int
-                                    ) -> List[AnimalVisitedLocationDTO]:
+                                    ) -> AnimalVisitedLocationDTOs:
 
         check_exist = exists(AnimalDB.id).where(AnimalDB.id == animal_id).select()
         result = await self._session.execute(check_exist)
@@ -147,4 +163,4 @@ class AnimalReader(SQLAlchemyRepo, IAnimalReader, IAnimalVisitedLocationReader):
 
         result = await self._session.execute(sql)
         models = result.scalars().all()
-        return self._mapper.load(AnimalVisitedLocationDTO, models)
+        return self._mapper.load(AnimalVisitedLocationDTOs, models)

@@ -68,14 +68,18 @@ class TypeOfSpecificAnimalService:
         self._mapper = mapper
 
     async def add_type(self, animal_type_dto: AddTypeOfSpecificAnimalDTO):
+        if not self._uow.animal_type_repo.check_exist(animal_type_dto.animal_type_id):
+            raise AnimalTypeNotFound(animal_type_dto.animal_type_id)
         await AddTypeToSpecificAnimal(self._uow, self._mapper)(animal_type_dto)
 
     async def change_type(self, animal_type_dto: ChangeTypeOfSpecificAnimalDTO):
         if not self._uow.animal_type_repo.check_exist(animal_type_dto.old_type_id):
             raise AnimalTypeNotFound(animal_type_dto.old_type_id)
+        elif not self._uow.animal_type_repo.check_exist(animal_type_dto.new_type_id):
+            raise AnimalTypeNotFound(animal_type_dto.new_type_id)
         await ChangeTypeOfSpecificAnimal(self._uow, self._mapper)(animal_type_dto)
 
     async def delete_type(self, animal_id: int, type_id: int):
-        if self._uow.animal_type_repo.check_exist(type_id):
+        if not self._uow.animal_type_repo.check_exist(type_id):
             raise AnimalTypeNotFound(type_id)
         await DeleteTypeOfSpecificAnimal(self._uow, self._mapper)(animal_id, type_id)

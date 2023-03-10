@@ -49,3 +49,8 @@ class AnimalDTO(BaseAnimalDTO):
     chipping_datetime: datetime
     visited_location: List[int]
     death_datetime: datetime
+
+
+@dataclass
+class AnimalDTOs(DTO):
+    animals: List[AnimalDTO]

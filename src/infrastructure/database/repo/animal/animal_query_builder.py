@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, asc
 from sqlalchemy.sql.selectable import Select
 
 from src.domain.animal.value_objects.gender import Gender
@@ -33,7 +33,7 @@ class GetAnimalQuery(BaseQueryBuilder):
             ._build())
 
     def _select(self, offset: int, limit: int) -> GetAnimalQuery:
-        self._query = select(AnimalDB).offset(offset).limit(limit)
+        self._query = select(AnimalDB).order_by(asc(AnimalDB.id)).offset(offset).limit(limit)
 
         return self
 

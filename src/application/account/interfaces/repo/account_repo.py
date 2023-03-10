@@ -1,8 +1,8 @@
-from typing import Protocol, List
+from typing import Protocol
 
 from src.domain.account.entities.account import Account
 
-from src.application.account.dto.account import AccountDTO
+from src.application.account.dto.account import AccountDTO, AccountDTOs
 
 
 class IAccountRepo(Protocol):
@@ -35,5 +35,5 @@ class IAccountReader(Protocol):
             email: str,
             limit: int,
             offset: int
-    ) -> List[AccountDTO]:
+    ) -> AccountDTOs:
         raise NotImplementedError

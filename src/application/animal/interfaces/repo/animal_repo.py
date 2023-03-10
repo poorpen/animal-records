@@ -1,11 +1,11 @@
 from datetime import datetime
-from typing import Protocol, List
+from typing import Protocol
 
 from src.domain.animal.value_objects.gender import Gender
 from src.domain.animal.value_objects.life_status import LifeStatus
 from src.domain.animal.entities.animal import Animal
 
-from src.application.animal.dto.animal import AnimalDTO
+from src.application.animal.dto.animal import AnimalDTO, AnimalDTOs
 
 
 class IAnimalRepo(Protocol):
@@ -37,5 +37,5 @@ class IAnimalReader(Protocol):
                            gender: Gender,
                            limit: int,
                            offset: int
-                           ) -> List[AnimalDTO]:
+                           ) -> AnimalDTOs:
         raise NotImplementedError

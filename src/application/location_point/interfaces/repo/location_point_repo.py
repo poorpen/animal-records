@@ -19,6 +19,9 @@ class ILocationPointRepo(Protocol):
     async def delete_location_point(self, location_id: int) -> None:
         raise NotImplementedError
 
+    async def check_exist(self, location_id: int) -> bool:
+        raise NotImplementedError
+
 
 class ILocationPointReader(Protocol):
 

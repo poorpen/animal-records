@@ -5,12 +5,15 @@ from sqlalchemy.exc import IntegrityError
 
 from src.domain.account.entities.account import Account
 
-from src.application.account.dto.account import AccountDTO
-from src.application.account.exceptions.account import AccountNotFoundByID, AccountNotFoundByEmail, AccountHaveAnimal
+from src.application.account.dto.account import AccountDTO, AccountDTOs
+from src.application.common.exceptions.application import ApplicationException
+from src.application.account.exceptions.account import AccountNotFoundByID, AccountNotFoundByEmail, AccountHaveAnimal, \
+    AccountAlreadyExist
 from src.application.account.interfaces.repo.account_repo import IAccountRepo, IAccountReader
 
 from src.infrastructure.database.repo.common.base_repo import SQLAlchemyRepo
 from src.infrastructure.database.models.account import AccountDB
+from src.infrastructure.database.repo.account.account_query_builder import GetAccountQuery
 
 
 class AccountRepo(SQLAlchemyRepo, IAccountRepo):
@@ -23,7 +26,7 @@ class AccountRepo(SQLAlchemyRepo, IAccountRepo):
         try:
             result = await self._session.execute(sql)
         except IntegrityError as exc:
-            raise self._error_parser.parse_error(account, exc)
+            raise self._error_parser(account, exc)
         row_id = result.scalar()
         return row_id
 
@@ -48,7 +51,7 @@ class AccountRepo(SQLAlchemyRepo, IAccountRepo):
         try:
             await self._session.merge(account_db)
         except IntegrityError as exc:
-            self._error_parser.parse_error(account, exc)
+            self._error_parser(account, exc)
 
     async def delete_account(self, account_id: int) -> None:
         sql = delete(AccountDB).where(AccountDB.id == account_id).returning(AccountDB.id)
@@ -60,8 +63,18 @@ class AccountRepo(SQLAlchemyRepo, IAccountRepo):
         if not deleted_row_id:
             raise AccountNotFoundByID(account_id)
 
+    @staticmethod
+    def _error_parser(account: Account, exception: IntegrityError) -> ApplicationException:
+        database_column = exception.__cause__.__cause__.constraint_name
+        if database_column == 'accounts_email_key':
+            return AccountAlreadyExist(account.email)
+
 
 class AccountReader(SQLAlchemyRepo, IAccountReader):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._query_builder = GetAccountQuery()
 
     async def get_account_by_id(self, account_id: int) -> AccountDTO:
         sql = select(AccountDB).where(AccountDB.id == account_id)
@@ -78,7 +91,7 @@ class AccountReader(SQLAlchemyRepo, IAccountReader):
             email: str,
             limit: int,
             offset: int
-    ) -> List[AccountDTO]:
+    ) -> AccountDTOs:
         sql = self._query_builder.get_query(first_name=first_name,
                                             last_name=last_name,
                                             email=email,
@@ -87,4 +100,4 @@ class AccountReader(SQLAlchemyRepo, IAccountReader):
                                             )
         result = await self._session.execute(sql)
         models = result.scalars().all()
-        return self._mapper.load(AccountDTO, models)
+        return self._mapper.load(AccountDTOs, models)

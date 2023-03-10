@@ -1,3 +1,4 @@
+from typing import List
 from dataclasses import dataclass
 
 from src.application.common.dto.base import DTO
@@ -30,3 +31,7 @@ class UpdateAccountDTO(BaseAccountDTO):
 @dataclass
 class AccountDTO(BaseAccountDTO):
     id: int
+
+@dataclass
+class AccountDTOs(DTO):
+    accounts: List[AccountDTO]

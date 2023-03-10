@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, Float, Enum, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, Float, Enum, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from src.domain.animal.value_objects.gender import Gender

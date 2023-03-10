@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, asc
 from sqlalchemy.sql.selectable import Select
 
 from src.infrastructure.database.models.account import AccountDB
@@ -25,7 +25,7 @@ class GetAccountQuery(BaseQueryBuilder):
         )
 
     def _select(self, offset: int, limit: int) -> GetAccountQuery:
-        self._query = select(AccountDB).offset(offset).limit(limit)
+        self._query = select(AccountDB).order_by(asc(AccountDB.id)).offset(offset).limit(limit)
         return self
 
     def _with_first_name(self, first_name: str) -> GetAccountQuery:

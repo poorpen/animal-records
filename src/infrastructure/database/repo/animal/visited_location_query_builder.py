@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, asc
 from sqlalchemy.sql.selectable import Select
 
 from src.infrastructure.database.repo.common.base_query_bilder import BaseQueryBuilder
@@ -23,7 +23,8 @@ class GetVisitedLocationQuery(BaseQueryBuilder):
         )
 
     def _select(self, offset: int, limit: int) -> GetVisitedLocationQuery:
-        self._query = select(AnimalVisitedLocationDB).offset(offset).limit(limit)
+        self._query = select(AnimalVisitedLocationDB).orber_by(asc(AnimalVisitedLocationDB.datetime_of_visit)).offset(
+            offset).limit(limit)
 
         return self
 

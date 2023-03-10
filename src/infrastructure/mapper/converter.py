@@ -11,7 +11,7 @@ class Converter:
         self._to_model = to_mode
         self.func = func
 
-    def check(self, from_model: FromModel, to_model: ToModel):
+    def  check(self, from_model: FromModel, to_model: ToModel):
         if self._from_model == from_model and self._to_model == to_model:
             return True
         return False

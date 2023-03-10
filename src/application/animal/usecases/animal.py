@@ -1,5 +1,4 @@
 from abc import ABC
-from typing import List
 
 from src.domain.animal.entities.animal import Animal
 
@@ -10,8 +9,9 @@ from src.application.account.exceptions.account import AccountNotFoundByID
 from src.application.location_point.exceptions.location_point import PointNotFound
 
 from src.application.animal.interfaces.uow.animal_uow import IAnimalUoW
-from src.application.animal.dto.animal import AnimalDTO, CreateAnimalDTO, SearchParametersDTO, UpdateAnimalDTO
-from src.application.animal.exceptions.animal import AnimalHaveDuplicateTypes, AnimalNotFound
+from src.application.animal.dto.animal import AnimalDTO, CreateAnimalDTO, SearchParametersDTO, UpdateAnimalDTO, \
+    AnimalDTOs
+from src.application.animal.exceptions.animal import AnimalHaveDuplicateTypes
 from src.domain.animal.entities.type_of_specific_animal import TypeOfSpecificAnimal
 
 
@@ -80,7 +80,7 @@ class GetAnimal(AnimalUseCase):
 
 class SearchAnimal(AnimalUseCase):
 
-    async def __call__(self, search_parameters_dto: SearchParametersDTO) -> List[AnimalDTO]:
+    async def __call__(self, search_parameters_dto: SearchParametersDTO) -> AnimalDTOs:
         return await self._uow.animal_reader.search_anima(
             start_datetime=search_parameters_dto.start_datetime,
             end_datetime=search_parameters_dto.end_datetime,
@@ -114,7 +114,7 @@ class AnimalService:
     async def get_animal(self, animal_id: int) -> AnimalDTO:
         return await GetAnimal(self._uow, self._mapper)(animal_id)
 
-    async def search_animal(self, search_parameters_dto: SearchParametersDTO) -> List[AnimalDTO]:
+    async def search_animal(self, search_parameters_dto: SearchParametersDTO) -> AnimalDTOs:
         return await SearchAnimal(self._uow, self._mapper)(search_parameters_dto)
 
     async def delete_animal(self, animal_id: int) -> None:

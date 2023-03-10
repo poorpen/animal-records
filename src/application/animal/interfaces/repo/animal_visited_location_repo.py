@@ -1,8 +1,8 @@
 from datetime import datetime
 
-from typing import Protocol, List
+from typing import Protocol
 
-from src.application.animal.dto.animal_visited_location import AnimalVisitedLocationDTO
+from src.application.animal.dto.animal_visited_location import AnimalVisitedLocationDTOs
 
 
 class IAnimalVisitedLocationRepo(Protocol):
@@ -19,5 +19,5 @@ class IAnimalVisitedLocationReader(Protocol):
                                     end_datetime: datetime,
                                     limit: int,
                                     offset: int
-                                    ) -> List[AnimalVisitedLocationDTO]:
+                                    ) -> AnimalVisitedLocationDTOs:
         raise NotImplementedError

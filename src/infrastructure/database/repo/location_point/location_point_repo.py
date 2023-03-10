@@ -4,7 +4,9 @@ from sqlalchemy.exc import IntegrityError
 
 from src.domain.location_point.entities.location_point import LocationPoint
 
-from src.application.location_point.exceptions.location_point import PointNotFound, AnimalAssociatedWithPoint
+from src.application.common.exceptions.application import ApplicationException
+from src.application.location_point.exceptions.location_point import PointNotFound, AnimalAssociatedWithPoint, \
+    PointAlreadyExist
 from src.application.location_point.dto.location_point import LocationPointDTO
 from src.application.location_point.interfaces.repo.location_point_repo import ILocationPointRepo, ILocationPointReader
 
@@ -20,7 +22,7 @@ class LocationPointRepo(SQLAlchemyRepo, ILocationPointRepo):
         try:
             result = await self._session.execute(sql)
         except IntegrityError as exc:
-            raise self._error_parser.parse_error(location_point, exc)
+            raise self._error_parser(location_point, exc)
         row_id = result.scalar()
         return row_id
 
@@ -37,7 +39,7 @@ class LocationPointRepo(SQLAlchemyRepo, ILocationPointRepo):
         try:
             await self._session.merge(location_point_db)
         except IntegrityError as exc:
-            raise self._error_parser.parse_error(location_point, exc)
+            raise self._error_parser(location_point, exc)
 
     async def delete_location_point(self, location_id: int) -> None:
         sql = delete(LocationPointDB).where(LocationPointDB.id == location_id).returning(LocationPointDB.id)
@@ -48,6 +50,13 @@ class LocationPointRepo(SQLAlchemyRepo, ILocationPointRepo):
         deleted_row_id = result.scalar()
         if not deleted_row_id:
             raise PointNotFound(location_id)
+
+    @staticmethod
+    def _error_parser(location_point: LocationPoint, exception: IntegrityError) -> ApplicationException:
+        database_column = exception.__cause__.__cause__.constraint_name
+        if database_column == 'location_coordinates':
+            return PointAlreadyExist(latitude=location_point.latitude,
+                                     longitude=location_point.longitude)
 
 
 class LocationPointReader(SQLAlchemyRepo, ILocationPointReader):

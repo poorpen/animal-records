@@ -1,6 +1,4 @@
 from abc import ABC
-from typing import List
-
 from src.domain.account.entities.account import Account
 from src.domain.account.services.access_policy import UserAccessPolicy
 
@@ -8,8 +6,9 @@ from src.application.common.interfaces.mapper import IMapper
 
 from src.application.account.interfaces.hasher.hasher import IHasher
 from src.application.account.interfaces.uow.account_uow import IAccountUOW
-from src.application.account.dto.account import AccountDTO, SearchParametersDTO, CreateAccountDTO, UpdateAccountDTO
-from src.application.account.exceptions.account import AccountAlreadyExist, AccountNotFoundByID, AccountAccessError
+from src.application.account.dto.account import AccountDTO, SearchParametersDTO, CreateAccountDTO, UpdateAccountDTO, \
+    AccountDTOs
+from src.application.account.exceptions.account import AccountAlreadyExist, AccountAccessError
 
 
 class AccountUseCase(ABC):
@@ -68,7 +67,7 @@ class GetAccount(AccountUseCase):
 
 class SearchAccounts(AccountUseCase):
 
-    async def __call__(self, search_parameters_dto: SearchParametersDTO) -> List[AccountDTO]:
+    async def __call__(self, search_parameters_dto: SearchParametersDTO) -> AccountDTOs:
         return await self._uow.account_reader.get_accounts(
             first_name=search_parameters_dto.first_name,
             last_name=search_parameters_dto.last_name,
@@ -104,7 +103,7 @@ class AccountService:
     async def get_account(self, account_id: int) -> AccountDTO:
         return await GetAccount(self._uow, self._mapper, self._hasher)(account_id)
 
-    async def search_accounts(self, search_parameters_dto: SearchParametersDTO) -> List[AccountDTO]:
+    async def search_accounts(self, search_parameters_dto: SearchParametersDTO) -> AccountDTOs:
         return await SearchAccounts(self._uow, self._mapper, self._hasher)(search_parameters_dto)
 
     async def delete_account(self, account_id: int) -> None:

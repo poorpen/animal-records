@@ -1,3 +1,5 @@
+from typing import List
+
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -31,3 +33,8 @@ class AnimalVisitedLocationDTO(DTO):
     id: int
     datetime_of_visit: datetime
     location_point_id: int
+
+
+@dataclass
+class AnimalVisitedLocationDTOs(DTO):
+    visited_locations: List[AnimalVisitedLocationDTO]
