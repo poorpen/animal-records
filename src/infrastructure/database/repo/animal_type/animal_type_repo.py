@@ -3,8 +3,9 @@ from sqlalchemy.exc import IntegrityError
 
 from src.domain.animal_type.entities.animal_type import AnimalType
 
+from src.application.common.exceptions.application import ApplicationException
 from src.application.animal_type.dto.animal_type import AnimalTypeDTO
-from src.application.animal_type.exceptions.animal_type import AnimalTypeNotFound, AnimalHaveType
+from src.application.animal_type.exceptions.animal_type import AnimalTypeNotFound, AnimalHaveType, AnimalTypeAlreadyExist
 from src.application.animal_type.interfaces.repo.animal_type_repo import IAnimalTypeRepo, IAnimalTypeReader
 
 from src.infrastructure.database.repo.common.base_repo import SQLAlchemyRepo
@@ -18,7 +19,7 @@ class AnimalTypeRepo(SQLAlchemyRepo, IAnimalTypeRepo):
         try:
             result = await self._session.execute(sql)
         except IntegrityError as exc:
-            raise self._error_parser.parse_error(animal_type, exc)
+            raise self._error_parser(animal_type, exc)
         row_id = result.scalar()
         return row_id
 
@@ -35,7 +36,7 @@ class AnimalTypeRepo(SQLAlchemyRepo, IAnimalTypeRepo):
         try:
             await self._session.merge(animal_type_db)
         except IntegrityError as exc:
-            raise self._error_parser.parse_error(animal_type, exc)
+            raise self._error_parser(animal_type, exc)
 
     async def delete_type(self, animal_type_id: int) -> None:
         sql = delete(AnimalTypeDB).where(AnimalTypeDB.id == animal_type_id).returning(AnimalTypeDB.id)
@@ -52,6 +53,12 @@ class AnimalTypeRepo(SQLAlchemyRepo, IAnimalTypeRepo):
         result = await self._session.execute(sql)
         check_result = result.scalar()
         return check_result
+
+    @staticmethod
+    def _error_parser(animal_type: AnimalType, exception: IntegrityError) -> ApplicationException:
+        database_column = exception.__cause__.__cause__.constraint_name
+        if database_column == 'animal_types_type_key':
+            return AnimalTypeAlreadyExist(animal_type.type)
 
 
 class AnimalTypeReader(SQLAlchemyRepo, IAnimalTypeReader):
