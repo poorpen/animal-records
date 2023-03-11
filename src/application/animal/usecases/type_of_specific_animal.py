@@ -39,11 +39,7 @@ class ChangeTypeOfSpecificAnimal(TypeOfSpecificAnimalUseCse):
 
     async def __call__(self, animal_type_dto: ChangeTypeOfSpecificAnimalDTO) -> AnimalDTO:
         animal = await self._uow.animal_repo.get_animal_by_id(animal_type_dto.animal_id)
-        old_type = animal.get_animal_type(animal_type_dto.old_type_id)
-        new_type = TypeOfSpecificAnimal.create(animal_id=animal_type_dto.animal_id,
-                                               animal_type_id=animal_type_dto.new_type_id)
-        animal.change_animal_type(old_type_of_this_animal=old_type,
-                                  new_type_of_this_animal=new_type)
+        animal.change_animal_type(animal_type_dto.old_type_id, animal_type_dto.new_type_id)
         try:
             await self._uow.animal_repo.update_animal(animal)
         except AnimalTypeNotFound:

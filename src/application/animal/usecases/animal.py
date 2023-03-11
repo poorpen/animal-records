@@ -62,7 +62,7 @@ class UpdateAnimal(AnimalUseCase):
             chipper_id=animal_dto.chipper_id,
             chipping_location_id=animal_dto.chipping_location_id
         )
-        animal.check_life_status()
+        animal.set_death_datetime()
         try:
             await self._uow.animal_repo.update_animal(animal)
             await self._uow.commit()

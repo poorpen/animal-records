@@ -52,11 +52,8 @@ class ChangeVisitedLocationUseCase(VisitedLocationUseCase):
 
     async def __call__(self, visited_location_dto: ChangeAnimalVisitedLocationDTO) -> AnimalVisitedLocationDTO:
         animal = await self._uow.animal_repo.get_animal_by_id(visited_location_dto.animal_id)
-        visited_location = animal.get_visited_location(visited_location_dto.id)
-        visited_location.update(
-            location_point_id=visited_location_dto.location_point_id
-        )
-        animal.change_visited_location(visited_location)
+        visited_location = animal.change_visited_location(visited_location_dto.id,
+                                                          visited_location_dto.location_point_id)
         await self._uow.animal_repo.update_animal(animal)
         return self._mapper.load(AnimalVisitedLocationDTO, visited_location)
 

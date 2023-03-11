@@ -26,5 +26,5 @@ class AnimalVisitedLocation(Entity, EntityMerge):
                                      location_point_id=location_point_id)
 
     def update(self, location_point_id: int | Empty = Empty.UNSET) -> None:
-        filtered_args = data_filter(location_point=location_point_id)
+        filtered_args = data_filter(location_point_id=location_point_id)
         self._merge(**filtered_args)
