@@ -73,10 +73,6 @@ class Animal(Entity, EntityMerge):
                                     visited_locations=visited_locations)
         self._merge(**filtered_args)
 
-    def set_death_datetime(self) -> None:
-        if self.life_status == LifeStatus.DEAD:
-            self.death_datetime = datetime.utcnow()
-
     def get_animal_type(self, animal_type_id):
         for animal_type in self.animal_types:
             if animal_type.animal_type_id == animal_type_id:

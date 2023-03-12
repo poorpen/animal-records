@@ -1,5 +1,6 @@
 from abc import ABC
 
+from src.domain.animal.services.animal import set_death_datetime
 from src.domain.animal.entities.animal import Animal
 
 from src.application.common.interfaces.mapper import IMapper
@@ -62,7 +63,7 @@ class UpdateAnimal(AnimalUseCase):
             chipper_id=animal_dto.chipper_id,
             chipping_location_id=animal_dto.chipping_location_id
         )
-        animal.set_death_datetime()
+        set_death_datetime(animal)
         try:
             await self._uow.animal_repo.update_animal(animal)
             await self._uow.commit()
