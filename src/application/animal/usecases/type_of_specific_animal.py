@@ -1,7 +1,5 @@
 from abc import ABC
 
-from src.domain.animal.entities.type_of_specific_animal import TypeOfSpecificAnimal
-
 from src.application.common.interfaces.mapper import IMapper
 
 from src.application.animal_type.exceptions.animal_type import AnimalTypeNotFound
@@ -23,16 +21,15 @@ class TypeOfSpecificAnimalUseCse(ABC):
 class AddTypeToSpecificAnimal(TypeOfSpecificAnimalUseCse):
 
     async def __call__(self, animal_type_dto: AddTypeOfSpecificAnimalDTO) -> AnimalDTO:
-        type_of_specific_animal = TypeOfSpecificAnimal.create(animal_id=animal_type_dto.animal_id,
-                                                              animal_type_id=animal_type_dto.animal_type_id)
         animal = await self._uow.animal_repo.get_animal_by_id(animal_type_dto.animal_id)
-        animal.add_animal_type(type_of_specific_animal)
+        animal.add_animal_type(type_id=animal_type_dto.animal_type_id)
         try:
-            await self._uow.animal_repo.update_animal(animal)
+            updated_animal = await self._uow.animal_repo.update_animal(animal)
+            await self._uow.commit()
         except AnimalTypeNotFound:
             await self._uow.rollback()
             raise
-        return self._mapper.load(AnimalDTO, animal)
+        return self._mapper.load(AnimalDTO, updated_animal)
 
 
 class ChangeTypeOfSpecificAnimal(TypeOfSpecificAnimalUseCse):
@@ -41,11 +38,12 @@ class ChangeTypeOfSpecificAnimal(TypeOfSpecificAnimalUseCse):
         animal = await self._uow.animal_repo.get_animal_by_id(animal_type_dto.animal_id)
         animal.change_animal_type(animal_type_dto.old_type_id, animal_type_dto.new_type_id)
         try:
-            await self._uow.animal_repo.update_animal(animal)
+            updated_animal = await self._uow.animal_repo.update_animal(animal)
+            await self._uow.commit()
         except AnimalTypeNotFound:
             await self._uow.rollback()
             raise
-        return self._mapper.load(AnimalDTO, animal)
+        return self._mapper.load(AnimalDTO, updated_animal)
 
 
 class DeleteTypeOfSpecificAnimal(TypeOfSpecificAnimalUseCse):
@@ -53,8 +51,9 @@ class DeleteTypeOfSpecificAnimal(TypeOfSpecificAnimalUseCse):
     async def __call__(self, animal_id: int, type_id: int) -> AnimalDTO:
         animal = await self._uow.animal_repo.get_animal_by_id(animal_id)
         animal.delete_animal_type(type_id)
-        await self._uow.animal_repo.update_animal(animal)
-        return self._mapper.load(AnimalDTO, animal)
+        updated_animal = await self._uow.animal_repo.update_animal(animal)
+        await self._uow.commit()
+        return self._mapper.load(AnimalDTO, updated_animal)
 
 
 class TypeOfSpecificAnimalService:
@@ -64,15 +63,11 @@ class TypeOfSpecificAnimalService:
         self._mapper = mapper
 
     async def add_type(self, animal_type_dto: AddTypeOfSpecificAnimalDTO):
-        if not self._uow.animal_type_repo.check_exist(animal_type_dto.animal_type_id):
-            raise AnimalTypeNotFound(animal_type_dto.animal_type_id)
         await AddTypeToSpecificAnimal(self._uow, self._mapper)(animal_type_dto)
 
     async def change_type(self, animal_type_dto: ChangeTypeOfSpecificAnimalDTO):
         if not self._uow.animal_type_repo.check_exist(animal_type_dto.old_type_id):
             raise AnimalTypeNotFound(animal_type_dto.old_type_id)
-        elif not self._uow.animal_type_repo.check_exist(animal_type_dto.new_type_id):
-            raise AnimalTypeNotFound(animal_type_dto.new_type_id)
         await ChangeTypeOfSpecificAnimal(self._uow, self._mapper)(animal_type_dto)
 
     async def delete_type(self, animal_id: int, type_id: int):

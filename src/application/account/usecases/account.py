@@ -82,6 +82,7 @@ class DeleteAccount(AccountUseCase):
 
     async def __call__(self, account_id: int) -> None:
         await self._uow.account_repo.delete_account(account_id=account_id)
+        await self._uow.commit()
 
 
 class AccountService:

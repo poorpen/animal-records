@@ -18,8 +18,8 @@ class AnimalVisitedLocation(Entity, EntityMerge):
 
     @staticmethod
     def create(location_point_id: int,
+               datetime_of_visit: datetime,
                visited_location_id: int | None = None,
-               datetime_of_visit: datetime | None = None
                ) -> AnimalVisitedLocation:
         return AnimalVisitedLocation(id=visited_location_id,
                                      datetime_of_visit=datetime_of_visit,

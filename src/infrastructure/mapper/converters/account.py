@@ -50,7 +50,7 @@ def account_model_to_dto_converter(data: AccountDB) -> AccountDTO:
     return convert_to_dto(data)
 
 
-@converter(AccountDB, AccountDTOs)
+@converter(list, AccountDTOs)
 def account_models_to_dtos_converter(data: List[AccountDB]) -> AccountDTOs:
     return AccountDTOs(accounts=[
         convert_to_dto(account_db) for account_db in data

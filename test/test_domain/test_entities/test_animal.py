@@ -4,7 +4,7 @@ from datetime import datetime
 
 from src.domain.animal.value_objects.life_status import LifeStatus
 
-from test.domain.entities.common import animal
+from test.test_domain.test_entities.common import animal
 
 
 def test_set_death_datetime_negative(animal):

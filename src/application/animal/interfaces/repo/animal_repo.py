@@ -16,7 +16,7 @@ class IAnimalRepo(Protocol):
     async def add_animal(self, animal: Animal) -> int:
         raise NotImplementedError
 
-    async def update_animal(self, animal: Animal) -> None:
+    async def update_animal(self, animal: Animal) -> Animal:
         raise NotImplementedError
 
     async def delete_animal(self, animal_id: int) -> None:

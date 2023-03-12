@@ -32,5 +32,5 @@ def bind_animal_converters(mapper: Mapper):
     animal.animal_entity_to_dto_converter(mapper=mapper)
     animal.animal_entity_to_model_converter(mapper=mapper)
     animal.animal_model_to_entity_converter(mapper=mapper)
-    animal.animal_entity_to_dto_converter(mapper=mapper)
-    animal.visited_location_models_to_dtos_converter(mapper=mapper)
+    animal.animal_model_to_dto_converter(mapper=mapper)
+    animal.animal_model_to_dtos_converter(mapper=mapper)

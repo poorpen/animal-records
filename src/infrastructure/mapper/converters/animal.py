@@ -8,7 +8,7 @@ from src.application.animal.dto.animal_visited_location import AnimalVisitedLoca
 from src.application.animal.dto.animal import AnimalDTO, AnimalDTOs
 
 from src.infrastructure.database.models.animal_visited_location import AnimalVisitedLocationDB
-from src.infrastructure.database.models.animal_type import AnimalTypeDB
+from src.infrastructure.database.models.type_of_specific_animal import TypeOfSpecificAnimalDB
 from src.infrastructure.database.models.animal import AnimalDB
 
 from src.infrastructure.mapper.decor import converter
@@ -23,7 +23,7 @@ def convert_to_dto(data: AnimalVisitedLocation | AnimalVisitedLocationDB) -> Ani
 
 
 def convert_animal_to_dto(data: AnimalDB | Animal) -> AnimalDTO:
-    animal_types_id = [animaL_type.id for animaL_type in data.animal_types]
+    animal_types_id = [animaL_type.animal_type_id for animaL_type in data.animal_types]
     visited_locations_id = [visited_location.id for visited_location in data.visited_locations]
     return AnimalDTO(
         id=data.id,
@@ -36,7 +36,7 @@ def convert_animal_to_dto(data: AnimalDB | Animal) -> AnimalDTO:
         life_status=data.life_status,
         gender=data.gender,
         chipping_datetime=data.chipping_datetime,
-        visited_location=visited_locations_id,
+        visited_locations=visited_locations_id,
         death_datetime=data.death_datetime
     )
 
@@ -46,7 +46,7 @@ def visited_location_entity_to_dto(data: AnimalVisitedLocation) -> AnimalVisited
     return convert_to_dto(data)
 
 
-@converter(AnimalVisitedLocationDB, AnimalVisitedLocationDTOs)
+@converter(list, AnimalVisitedLocationDTOs)
 def visited_location_models_to_dtos_converter(data: List[AnimalVisitedLocationDB]) -> AnimalVisitedLocationDTOs:
     return AnimalVisitedLocationDTOs(
         visited_locations=[
@@ -63,7 +63,8 @@ def animal_entity_to_dto_converter(data: Animal) -> AnimalDTO:
 
 @converter(Animal, AnimalDB)
 def animal_entity_to_model_converter(data: Animal) -> AnimalDB:
-    animal_type_models = [AnimalTypeDB(id=animal_type.animal_type_id) for animal_type in data.animal_types]
+    animal_type_models = [TypeOfSpecificAnimalDB(animal_type_id=animal_type.animal_type_id, animal_id=data.id)
+                          for animal_type in data.animal_types]
     visited_location_models = [AnimalVisitedLocationDB(
         id=visited_location.id,
         datetime_of_visit=visited_location.datetime_of_visit,
@@ -94,7 +95,7 @@ def animal_model_to_entity_converter(data: AnimalDB) -> Animal:
         )
         for animal_type in data.animal_types]
     visited_location_entities = [
-        AnimalVisitedLocationDB(
+        AnimalVisitedLocation(
             id=visited_location.id,
             datetime_of_visit=visited_location.datetime_of_visit,
             location_point_id=visited_location.location_point_id
@@ -122,7 +123,7 @@ def animal_model_to_dto_converter(data: AnimalDB) -> AnimalDTO:
     return convert_animal_to_dto(data)
 
 
-@converter(AnimalDB, AnimalDTOs)
+@converter(list, AnimalDTOs)
 def animal_model_to_dtos_converter(data: List[AnimalDB]) -> AnimalDTOs:
     return AnimalDTOs(animals=[
         convert_animal_to_dto(animal) for animal in data

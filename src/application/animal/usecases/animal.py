@@ -97,6 +97,7 @@ class DeleteAnimal(AnimalUseCase):
 
     async def __call__(self, animal_id: int) -> None:
         await self._uow.animal_repo.delete_animal(animal_id)
+        await self._uow.commit()
 
 
 class AnimalService:

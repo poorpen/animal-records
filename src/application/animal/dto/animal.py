@@ -47,7 +47,7 @@ class AnimalDTO(BaseAnimalDTO):
     id: int
     animal_types: List[int]
     chipping_datetime: datetime
-    visited_location: List[int]
+    visited_locations: List[int]
     death_datetime: datetime
 
 

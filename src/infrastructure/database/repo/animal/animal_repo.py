@@ -11,8 +11,10 @@ from src.domain.animal.entities.type_of_specific_animal import TypeOfSpecificAni
 from src.domain.animal.entities.animal_visited_location import AnimalVisitedLocation
 
 from src.application.common.exceptions.application import ApplicationException
+
 from src.application.account.exceptions.account import AccountNotFoundByID
 from src.application.location_point.exceptions.location_point import PointNotFound
+from src.application.animal_type.exceptions.animal_type import AnimalTypeNotFound
 
 from src.application.animal.exceptions.animal import AnimalNotFound
 
@@ -63,12 +65,13 @@ class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
             raise AnimalNotFound(animal_id)
         return self._mapper.load(Animal, model)
 
-    async def update_animal(self, animal: Animal) -> None:
+    async def update_animal(self, animal: Animal) -> Animal:
         anima_db = self._mapper.load(AnimalDB, animal)
         try:
-            await self._session.merge(anima_db)
+            updated_animal = await self._session.merge(anima_db)
         except IntegrityError as exc:
             raise self._error_parser(animal, exc)
+        return self._mapper.load(Animal, updated_animal)
 
     async def delete_animal(self, animal_id: int) -> None:
         sql = delete(AnimalDB).where(AnimalDTO.id == animal_id).returning(AnimalDB.id)
@@ -93,13 +96,17 @@ class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
                 raise self._error_parser(this_animal_type, exc)
 
     @staticmethod
-    def _error_parser(entity: Animal | TypeOfSpecificAnimalDB | AnimalVisitedLocation,
+    def _error_parser(entity: Animal | TypeOfSpecificAnimal | AnimalVisitedLocation,
                       exception: IntegrityError) -> ApplicationException:
         database_column = exception.__cause__.__cause__.constraint_name
         if database_column == 'animals_chipper_id_fkey':
             return AccountNotFoundByID(entity.chipper_id)
         elif database_column == 'animals_chipping_location_id_fkey':
             return PointNotFound(entity.chipping_location_id)
+        elif database_column == 'animal_visited_location_location_point_id_fkey':
+            return PointNotFound(entity.location_point_id)
+        elif database_column == 'type_of_specific_animal_animal_type_id_fkey':
+            return AnimalTypeNotFound(entity.animal_type_id)
 
 
 class AnimalReader(SQLAlchemyRepo, IAnimalReader, IAnimalVisitedLocationReader):

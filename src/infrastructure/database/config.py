@@ -8,3 +8,4 @@ class DBConfig:
     user: str
     password: str
     db_name: str
+    driver: str

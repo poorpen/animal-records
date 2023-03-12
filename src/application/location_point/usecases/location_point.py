@@ -48,6 +48,7 @@ class ChangeLocationPointUseCase(LocationPointUseCase):
         )
         try:
             await self._uow.location_point_repo.change_location_point(location_point)
+            await self._uow.commit()
         except PointAlreadyExist:
             await self._uow.rollback()
             raise
@@ -64,7 +65,7 @@ class DeleteLocationPoint(LocationPointUseCase):
 
     async def __call__(self, point_id: int) -> None:
         await self._uow.location_point_repo.delete_location_point(point_id)
-
+        await self._uow.commit()
 
 class LocationPointService:
 

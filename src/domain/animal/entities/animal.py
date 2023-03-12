@@ -37,7 +37,7 @@ class Animal(Entity, EntityMerge):
     chipping_location_id: int
     chipper_id: int
     visited_locations: List[AnimalVisitedLocation]
-    death_datetime: Empty | datetime
+    death_datetime: None | datetime
 
     @staticmethod
     def create(animal_types: List[TypeOfSpecificAnimal],
@@ -86,24 +86,29 @@ class Animal(Entity, EntityMerge):
             if self.animal_types.count(type_of_this_animal) > 1:
                 return type_of_this_animal
 
-    def add_animal_type(self, type_of_this_animal: TypeOfSpecificAnimal) -> None:
+    def add_animal_type(self, type_id: int) -> None:
+        type_of_this_animal = TypeOfSpecificAnimal.create(animal_type_id=type_id)
         if type_of_this_animal in self.animal_types:
             raise AnimalAlreadyHaveThisType(self.id, type_of_this_animal.animal_type_id)
         self.update(animal_types=[type_of_this_animal])
 
-    def add_visited_location(self, visited_location: AnimalVisitedLocation) -> None:
+    def add_visited_location(self, location_point_id: int):
         if self.life_status == LifeStatus.DEAD:
             raise AnimalIsDead(self.id)
-        elif self.chipping_location_id == visited_location.location_point_id:
-            raise LocationPointEqualToChippingLocation(self.id, visited_location.location_point_id)
+        elif self.chipping_location_id == location_point_id:
+            raise LocationPointEqualToChippingLocation(self.id, location_point_id)
         elif self.visited_locations:
-            if self.visited_locations[-1].location_point_id == visited_location.location_point_id:
-                raise AnimalNowInThisPoint(self.id, visited_location.location_point_id)
+            if self.visited_locations[-1].location_point_id == location_point_id:
+                raise AnimalNowInThisPoint(self.id, location_point_id)
+
+        visited_location = AnimalVisitedLocation.create(location_point_id=location_point_id,
+                                                        datetime_of_visit=datetime.utcnow())
         self.update(visited_locations=[visited_location])
 
     def change_animal_type(self, old_type_int: int, new_type_id: int) -> None:
         exist_old_type = self._check_exist_animal_type(old_type_int)
         exist_new_type = self._check_exist_animal_type(new_type_id)
+
         if exist_old_type and exist_new_type:
             raise AnimalAlreadyHaveThisTypes(animal_id=self.id, old_type=old_type_int, new_type=new_type_id)
         elif exist_new_type:
@@ -116,13 +121,19 @@ class Animal(Entity, EntityMerge):
     def change_visited_location(self, visited_location_id: int, new_location_point_id: int) -> AnimalVisitedLocation:
         visited_location = self._get_visited_location(visited_location_id)
         location_index = self.visited_locations.index(visited_location)
+
         if visited_location.location_point_id == new_location_point_id:
             raise UpdateToSameLocationPoint(self.id, visited_location.location_point_id)
-        elif location_index != 0 and location_index + 1 != len(self.visited_locations):
-            if self.visited_locations[location_index + 1].location_point_id == new_location_point_id:
+        elif location_index != 0 and location_index != len(self.visited_locations) - 1:
+
+            next_element = self.visited_locations[location_index + 1]
+            previous_element = self.visited_locations[location_index - 1]
+
+            if next_element.location_point_id == new_location_point_id:
                 raise NextOfPreviousEqualThisLocation(self.id, visited_location.location_point_id)
-            elif self.visited_locations[location_index - 1].location_point_id == new_location_point_id:
+            elif previous_element.location_point_id == new_location_point_id:
                 raise NextOfPreviousEqualThisLocation(self.id, visited_location.location_point_id)
+
         elif location_index == 0 and new_location_point_id == self.chipping_location_id:
             raise UpdatedFirstPointToChippingPoint(self.id, visited_location.location_point_id)
 

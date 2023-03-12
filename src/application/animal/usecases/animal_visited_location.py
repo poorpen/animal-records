@@ -1,7 +1,5 @@
 from abc import ABC
 
-from src.domain.animal.entities.animal_visited_location import AnimalVisitedLocation
-
 from src.application.common.interfaces.mapper import IMapper
 
 from src.application.location_point.exceptions.location_point import PointNotFound
@@ -9,7 +7,6 @@ from src.application.animal.exceptions.animal_visited_location import AnimalVisi
 
 from src.application.animal.interfaces.uow.animal_visited_location_uow import IAnimalVisitedLocationUoW
 from src.application.animal.interfaces.uow.animal_uow import IAnimalUoW
-from src.application.animal.interfaces.uow.location_point_uow import ILocationPointUoW
 
 from src.application.animal.dto.animal_visited_location import \
     AddAnimalVisitedLocationDTO, AnimalVisitedLocationDTO, ChangeAnimalVisitedLocationDTO, SearchParametersDTO, \
@@ -38,14 +35,11 @@ class GetAnimalVisitedLocations(VisitedLocationUseCase):
 class AddVisitedLocationUseCase(VisitedLocationUseCase):
 
     async def __call__(self, visited_location_dto: AddAnimalVisitedLocationDTO) -> AnimalVisitedLocationDTO:
-        visited_location = AnimalVisitedLocation.create(
-            location_point_id=visited_location_dto.location_point_id
-        )
         animal = await self._uow.animal_repo.get_animal_by_id(visited_location_dto.animal_id)
-        animal.add_visited_location(visited_location)
-        visited_location_id = await self._uow.animal_repo.update_animal(animal)
-        visited_location.id = visited_location_id
-        return self._mapper.load(AnimalVisitedLocationDTO, visited_location)
+        animal.add_visited_location(location_point_id=visited_location_dto.location_point_id)
+        updated_animal = await self._uow.animal_repo.update_animal(animal)
+        await self._uow.commit()
+        return self._mapper.load(AnimalVisitedLocationDTO, updated_animal.visited_locations[-1])
 
 
 class ChangeVisitedLocationUseCase(VisitedLocationUseCase):
@@ -54,7 +48,12 @@ class ChangeVisitedLocationUseCase(VisitedLocationUseCase):
         animal = await self._uow.animal_repo.get_animal_by_id(visited_location_dto.animal_id)
         visited_location = animal.change_visited_location(visited_location_dto.id,
                                                           visited_location_dto.location_point_id)
-        await self._uow.animal_repo.update_animal(animal)
+        try:
+            await self._uow.animal_repo.update_animal(animal)
+            await self._uow.commit()
+        except PointNotFound:
+            await self._uow.rollback()
+            raise
         return self._mapper.load(AnimalVisitedLocationDTO, visited_location)
 
 
@@ -64,11 +63,12 @@ class DeleteVisitedLocationUseCase(VisitedLocationUseCase):
         animal = await self._uow.animal_repo.get_animal_by_id(animal_id)
         animal.delete_visited_location(visited_location_id)
         await self._uow.animal_repo.update_animal(animal)
+        await self._uow.commit()
 
 
 class AnimalVisitedLocationService:
 
-    def __init__(self, uow: IAnimalVisitedLocationUoW | IAnimalUoW | ILocationPointUoW, mapper: IMapper):
+    def __init__(self, uow: IAnimalVisitedLocationUoW | IAnimalUoW, mapper: IMapper):
         self._uow = uow
         self._mapper = mapper
 
@@ -76,20 +76,17 @@ class AnimalVisitedLocationService:
         return await GetAnimalVisitedLocations(self._uow, self._mapper)(search_parameters_dto)
 
     async def add_visited_location(self, visited_location_dto: AddAnimalVisitedLocationDTO) -> AnimalVisitedLocationDTO:
-        if not await self._uow.location_point_repo.check_exist(visited_location_dto.location_point_id):
-            raise PointNotFound(visited_location_dto.location_point_id)
+
         return await AddVisitedLocationUseCase(self._uow, self._mapper)(visited_location_dto)
 
     async def change_visited_location(self,
                                       visited_location_dto: ChangeAnimalVisitedLocationDTO
                                       ) -> AnimalVisitedLocationDTO:
-        if not await self._uow.animal_repo.check_exist_visited_location(visited_location_dto.id):
+        if not self._uow.animal_repo.check_exist_visited_location(visited_location_dto.location_point_id):
             raise AnimalVisitedLocationNotFound(visited_location_dto.id)
-        elif not await self._uow.location_point_repo.check_exist(visited_location_dto.location_point_id):
-            raise PointNotFound(visited_location_dto.location_point_id)
         return await ChangeVisitedLocationUseCase(self._uow, self._mapper)(visited_location_dto)
 
     async def delete_visited_location(self, animal_id: int, visited_location_id: int) -> None:
-        if not await self._uow.animal_repo.check_exist_visited_location(visited_location_id):
+        if not self._uow.animal_repo.check_exist_visited_location(visited_location_id):
             raise AnimalVisitedLocationNotFound(visited_location_id)
         await DeleteVisitedLocationUseCase(self._uow, self._mapper)(animal_id, visited_location_id)

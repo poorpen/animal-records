@@ -23,6 +23,5 @@ class AnimalDB(Base):
     chipper_id = Column(ForeignKey('accounts.id'))
     death_datetime = Column(DateTime(timezone=True), default=None)
 
-    animal_types = relationship('AnimalTypeDB', secondary='type_of_specific_animal', lazy='joined',
-                                cascade="all, delete")
+    animal_types = relationship('TypeOfSpecificAnimalDB', lazy='joined', cascade="all, delete")
     visited_locations = relationship('AnimalVisitedLocationDB', lazy='joined', cascade="all, delete")

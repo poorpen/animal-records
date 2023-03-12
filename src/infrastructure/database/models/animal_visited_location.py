@@ -11,4 +11,4 @@ class AnimalVisitedLocationDB(Base):
     id = Column(Integer, primary_key=True)
     animal_id = Column(ForeignKey('animals.id'))
     location_point_id = Column(ForeignKey('location_points.id'))
-    datetime_of_visit = Column(DateTime(timezone=True), default=datetime.utcnow())
+    datetime_of_visit = Column(DateTime(timezone=True))
