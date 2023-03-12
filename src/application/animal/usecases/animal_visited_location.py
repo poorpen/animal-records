@@ -1,5 +1,8 @@
 from abc import ABC
 
+from src.domain.animal.services.anima_visited_locations import add_visited_location, change_visited_location, \
+    delete_visited_location
+
 from src.application.common.interfaces.mapper import IMapper
 
 from src.application.location_point.exceptions.location_point import PointNotFound
@@ -36,7 +39,9 @@ class AddVisitedLocationUseCase(VisitedLocationUseCase):
 
     async def __call__(self, visited_location_dto: AddAnimalVisitedLocationDTO) -> AnimalVisitedLocationDTO:
         animal = await self._uow.animal_repo.get_animal_by_id(visited_location_dto.animal_id)
-        animal.add_visited_location(location_point_id=visited_location_dto.location_point_id)
+
+        add_visited_location(animal, visited_location_dto.location_point_id)
+
         updated_animal = await self._uow.animal_repo.update_animal(animal)
         await self._uow.commit()
         return self._mapper.load(AnimalVisitedLocationDTO, updated_animal.visited_locations[-1])
@@ -46,8 +51,10 @@ class ChangeVisitedLocationUseCase(VisitedLocationUseCase):
 
     async def __call__(self, visited_location_dto: ChangeAnimalVisitedLocationDTO) -> AnimalVisitedLocationDTO:
         animal = await self._uow.animal_repo.get_animal_by_id(visited_location_dto.animal_id)
-        visited_location = animal.change_visited_location(visited_location_dto.id,
-                                                          visited_location_dto.location_point_id)
+
+        change_visited_location(animal, visited_location_dto.id, visited_location_dto.location_point_id)
+        visited_location = animal.get_visited_location(visited_location_dto.id)
+
         try:
             await self._uow.animal_repo.update_animal(animal)
             await self._uow.commit()
@@ -61,7 +68,7 @@ class DeleteVisitedLocationUseCase(VisitedLocationUseCase):
 
     async def __call__(self, animal_id: int, visited_location_id: int) -> None:
         animal = await self._uow.animal_repo.get_animal_by_id(animal_id)
-        animal.delete_visited_location(visited_location_id)
+        delete_visited_location(animal, visited_location_id)
         await self._uow.animal_repo.update_animal(animal)
         await self._uow.commit()
 
