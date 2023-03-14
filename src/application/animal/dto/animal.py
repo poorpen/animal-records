@@ -7,17 +7,24 @@ from src.domain.animal.value_objects.gender import Gender
 
 from src.application.common.dto.base import DTO
 
+from src.application.common.dto.id_validator import IDValidator
+
+
+@dataclass
+class AnimalID(DTO, IDValidator):
+    id: int
+
 
 @dataclass
 class BaseAnimalDTO(DTO):
     chipper_id: int
     chipping_location_id: int
-    life_status: LifeStatus
-    gender: Gender
+    gender: str
 
 
 @dataclass
 class SearchParametersDTO(BaseAnimalDTO):
+    life_status: LifeStatus
     start_datetime: datetime
     end_datetime: datetime
     limit: int
@@ -34,18 +41,18 @@ class BaseAnimalDTO(BaseAnimalDTO):
 @dataclass
 class CreateAnimalDTO(BaseAnimalDTO):
     animal_types: List[int]
-    life_status: LifeStatus
 
 
 @dataclass
-class UpdateAnimalDTO(BaseAnimalDTO):
-    id: int
+class UpdateAnimalDTO(BaseAnimalDTO, AnimalID):
+    life_status: str
 
 
 @dataclass
 class AnimalDTO(BaseAnimalDTO):
     id: int
     animal_types: List[int]
+    life_status: LifeStatus
     chipping_datetime: datetime
     visited_locations: List[int]
     death_datetime: datetime

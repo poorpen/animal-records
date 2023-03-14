@@ -9,21 +9,21 @@ from test.test_infrastructure.test_mapper.common import mapper
 
 @pytest.fixture
 def account_entity():
-    return Account(id=1, first_name='first_name', last_name='last_name', email='example@localhost.com',
+    return Account(id=1, first_name='first_name', last_name='last_name', email='roma.polovik@mail.ru',
                    password='password')
 
 
 @pytest.fixture
 def account_db_model():
-    model = AccountDB(id=1, first_name='first_name', last_name='last_name', email='example@localhost.com',
-                     password='password')
+    model = AccountDB(id=1, first_name='first_name', last_name='last_name', email='roma.polovik@mail.ru',
+                      password='password')
     model.__dict__.pop('_sa_instance_state')
     return model
 
 
 @pytest.fixture
 def account_dto():
-    return AccountDTO(id=1, first_name='first_name', last_name='last_name', email='example@localhost.com')
+    return AccountDTO(id=1, first_name='first_name', last_name='last_name', email='roma.polovik@mail.ru')
 
 
 def test_entity_to_dto(mapper, account_entity, account_dto):

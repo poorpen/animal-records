@@ -25,5 +25,5 @@ class AnimalAssociatedWithPoint(ApplicationException):
     location_point_id: int
 
     def message(self):
-        return f'Точка локации с location_point_id {self.location_point_id} c животным'
+        return f'Точка локации с location_point_id {self.location_point_id} связанна c животным'
 

@@ -24,19 +24,21 @@ class BaseAccountException(ApplicationException):
     account_id: int
 
 
+@dataclass
 class AccountNotFoundByID(BaseAccountException):
 
     def message(self):
         return f'Аккаунт с account_id {self.account_id} не найден'
 
 
+@dataclass
 class AccountAccessError(BaseAccountException):
 
     def message(self):
         return f'Ошибка доступа к аккаунту с account_id {self.account_id}! ' \
                f'Возможно вы не являетесь владельцем данного аккаунта '
 
-
+@dataclass
 class AccountHaveAnimal(BaseAccountException):
 
     def message(self):

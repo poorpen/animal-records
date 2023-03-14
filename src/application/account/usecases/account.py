@@ -7,8 +7,8 @@ from src.application.common.interfaces.mapper import IMapper
 from src.application.account.interfaces.hasher.hasher import IHasher
 from src.application.account.interfaces.uow.account_uow import IAccountUOW
 from src.application.account.dto.account import AccountDTO, SearchParametersDTO, CreateAccountDTO, UpdateAccountDTO, \
-    AccountDTOs
-from src.application.account.exceptions.account import AccountAlreadyExist, AccountAccessError
+    AccountDTOs, AccountID
+from src.application.account.exceptions.account import AccountAlreadyExist, AccountAccessError, AccountHaveAnimal
 
 
 class AccountUseCase(ABC):
@@ -61,8 +61,8 @@ class UpdateAccount(AccountUseCase):
 
 class GetAccount(AccountUseCase):
 
-    async def __call__(self, account_id: int) -> AccountDTO:
-        return await self._uow.account_reader.get_account_by_id(account_id=account_id)
+    async def __call__(self, account: AccountID) -> AccountDTO:
+        return await self._uow.account_reader.get_account_by_id(account_id=account.id)
 
 
 class SearchAccounts(AccountUseCase):
@@ -80,18 +80,22 @@ class SearchAccounts(AccountUseCase):
 
 class DeleteAccount(AccountUseCase):
 
-    async def __call__(self, account_id: int) -> None:
-        await self._uow.account_repo.delete_account(account_id=account_id)
-        await self._uow.commit()
+    async def __call__(self, account: AccountID) -> None:
+        try:
+            await self._uow.account_repo.delete_account(account_id=account.id)
+            await self._uow.commit()
+        except AccountHaveAnimal:
+            await self._uow.rollback()
+            raise
 
 
 class AccountService:
 
-    def __init__(self, uow: IAccountUOW, mapper: IMapper, hasher: IHasher, access_policy: UserAccessPolicy):
+    def __init__(self, uow: IAccountUOW, mapper: IMapper, hasher: IHasher, current_user: Account | None):
         self._uow = uow
         self._mapper = mapper
         self._hasher = hasher
-        self._access_policy = access_policy
+        self._access_policy = UserAccessPolicy(current_user)
 
     async def create_account(self, account_dto: CreateAccountDTO) -> AccountDTO:
         return await CreateAccount(self._uow, self._mapper, self._hasher)(account_dto)
@@ -101,13 +105,13 @@ class AccountService:
             raise AccountAccessError(account_dto.id)
         return await UpdateAccount(self._uow, self._mapper, self._hasher)(account_dto)
 
-    async def get_account(self, account_id: int) -> AccountDTO:
-        return await GetAccount(self._uow, self._mapper, self._hasher)(account_id)
+    async def get_account(self, account: AccountID) -> AccountDTO:
+        return await GetAccount(self._uow, self._mapper, self._hasher)(account)
 
     async def search_accounts(self, search_parameters_dto: SearchParametersDTO) -> AccountDTOs:
         return await SearchAccounts(self._uow, self._mapper, self._hasher)(search_parameters_dto)
 
-    async def delete_account(self, account_id: int) -> None:
-        if not self._access_policy.check_self(account_id):
-            raise AccountAccessError(account_id)
-        await DeleteAccount(self._uow, self._mapper, self._hasher)(account_id)
+    async def delete_account(self, account: AccountID) -> None:
+        if not self._access_policy.check_self(account.id):
+            raise AccountAccessError(account.id)
+        await DeleteAccount(self._uow, self._mapper, self._hasher)(account)

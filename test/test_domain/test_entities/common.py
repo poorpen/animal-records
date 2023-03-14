@@ -11,13 +11,16 @@ from src.domain.animal.entities.animal import Animal
 
 @pytest.fixture
 def animal():
-    return Animal.create(animal_id=1,
-                         weight=1.1,
-                         length=1.1,
-                         height=1.1,
-                         gender=Gender.OTHER,
-                         life_status=LifeStatus.ALIVE,
-                         chipping_location_id=1,
-                         chipper_id=1,
-                         animal_types=[],
-                         )
+    return Animal(id=1,
+                  weight=1.1,
+                  length=1.1,
+                  height=1.1,
+                  gender=Gender.OTHER,
+                  life_status=LifeStatus.ALIVE,
+                  chipping_location_id=1,
+                  chipper_id=1,
+                  animal_types=[],
+                  visited_locations=[],
+                  chipping_datetime=None,
+                  death_datetime=None
+                  )

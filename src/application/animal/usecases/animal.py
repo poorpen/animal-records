@@ -1,6 +1,7 @@
 from abc import ABC
 
-from src.domain.animal.services.animal import set_death_datetime
+from src.domain.animal.services.animal import set_death_datetime, check_life_status_conflict, \
+    check_chipping_location
 from src.domain.animal.entities.animal import Animal
 
 from src.application.common.interfaces.mapper import IMapper
@@ -11,8 +12,8 @@ from src.application.location_point.exceptions.location_point import PointNotFou
 
 from src.application.animal.interfaces.uow.animal_uow import IAnimalUoW
 from src.application.animal.dto.animal import AnimalDTO, CreateAnimalDTO, SearchParametersDTO, UpdateAnimalDTO, \
-    AnimalDTOs
-from src.application.animal.exceptions.animal import AnimalHaveDuplicateTypes
+    AnimalDTOs, AnimalID
+from src.application.animal.exceptions.animal import AnimalHaveDuplicateTypes, AnimalHaveVisitedLocation
 from src.domain.animal.entities.type_of_specific_animal import TypeOfSpecificAnimal
 
 
@@ -54,6 +55,8 @@ class UpdateAnimal(AnimalUseCase):
 
     async def __call__(self, animal_dto: UpdateAnimalDTO) -> AnimalDTO:
         animal = await self._uow.animal_repo.get_animal_by_id(animal_dto.id)
+        check_life_status_conflict(animal, animal_dto.life_status)
+        check_chipping_location(animal, animal_dto.chipping_location_id)
         animal.update(
             weight=animal_dto.weight,
             length=animal_dto.length,
@@ -75,8 +78,8 @@ class UpdateAnimal(AnimalUseCase):
 
 class GetAnimal(AnimalUseCase):
 
-    async def __call__(self, animal_id: int) -> AnimalDTO:
-        return await self._uow.animal_reader.get_animal_by_id(animal_id)
+    async def __call__(self, animal: AnimalID) -> AnimalDTO:
+        return await self._uow.animal_reader.get_animal_by_id(animal.id)
 
 
 class SearchAnimal(AnimalUseCase):
@@ -96,9 +99,13 @@ class SearchAnimal(AnimalUseCase):
 
 class DeleteAnimal(AnimalUseCase):
 
-    async def __call__(self, animal_id: int) -> None:
-        await self._uow.animal_repo.delete_animal(animal_id)
-        await self._uow.commit()
+    async def __call__(self, animal: AnimalID) -> None:
+        try:
+            await self._uow.animal_repo.delete_animal(animal.id)
+            await self._uow.commit()
+        except AnimalHaveVisitedLocation:
+            await self._uow.rollback()
+            raise
 
 
 class AnimalService:
@@ -113,11 +120,11 @@ class AnimalService:
     async def update_animal(self, animal_dto: UpdateAnimalDTO) -> AnimalDTO:
         return await UpdateAnimal(self._uow, self._mapper)(animal_dto)
 
-    async def get_animal(self, animal_id: int) -> AnimalDTO:
-        return await GetAnimal(self._uow, self._mapper)(animal_id)
+    async def get_animal(self, animal: AnimalID) -> AnimalDTO:
+        return await GetAnimal(self._uow, self._mapper)(animal)
 
     async def search_animal(self, search_parameters_dto: SearchParametersDTO) -> AnimalDTOs:
         return await SearchAnimal(self._uow, self._mapper)(search_parameters_dto)
 
-    async def delete_animal(self, animal_id: int) -> None:
-        return await DeleteAnimal(self._uow, self._mapper)(animal_id)
+    async def delete_animal(self, animal: AnimalID) -> None:
+        return await DeleteAnimal(self._uow, self._mapper)(animal)

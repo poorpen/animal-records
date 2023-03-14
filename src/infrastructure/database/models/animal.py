@@ -18,10 +18,12 @@ class AnimalDB(Base):
     height = Column(Float, nullable=False)
     gender = Column(Enum(Gender))
     life_status = Column(Enum(LifeStatus))
-    chipping_datetime = Column(DateTime(timezone=True), default=datetime.utcnow())
+    chipping_datetime = Column(DateTime(timezone=True))
     chipping_location_id = Column(ForeignKey('location_points.id'))
     chipper_id = Column(ForeignKey('accounts.id'))
     death_datetime = Column(DateTime(timezone=True), default=None)
 
     animal_types = relationship('TypeOfSpecificAnimalDB', lazy='joined', cascade="all, delete")
     visited_locations = relationship('AnimalVisitedLocationDB', lazy='joined', cascade="all, delete")
+
+

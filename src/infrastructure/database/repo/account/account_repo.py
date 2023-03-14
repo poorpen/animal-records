@@ -31,6 +31,7 @@ class AccountRepo(SQLAlchemyRepo, IAccountRepo):
         return row_id
 
     async def get_account_by_id(self, account_id: int) -> Account:
+        self._check_id(account_id)
         sql = select(AccountDB).where(AccountDB.id == account_id)
         result = await self._session.execute(sql)
         model = result.scalar()
@@ -47,6 +48,7 @@ class AccountRepo(SQLAlchemyRepo, IAccountRepo):
         return self._mapper.load(Account, model)
 
     async def update_account(self, account: Account) -> None:
+        self._check_id(account.id)
         account_db = self._mapper.load(AccountDB, account)
         try:
             await self._session.merge(account_db)
@@ -54,6 +56,7 @@ class AccountRepo(SQLAlchemyRepo, IAccountRepo):
             self._error_parser(account, exc)
 
     async def delete_account(self, account_id: int) -> None:
+        self._check_id(account_id)
         sql = delete(AccountDB).where(AccountDB.id == account_id).returning(AccountDB.id)
         try:
             result = await self._session.execute(sql)
@@ -92,6 +95,7 @@ class AccountReader(SQLAlchemyRepo, IAccountReader):
             limit: int,
             offset: int
     ) -> AccountDTOs:
+        self._validate_limit_offset(limit, offset)
         sql = self._query_builder.get_query(first_name=first_name,
                                             last_name=last_name,
                                             email=email,

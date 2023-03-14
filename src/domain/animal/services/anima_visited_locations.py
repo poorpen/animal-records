@@ -8,6 +8,7 @@ from src.domain.animal.exceptions.animal_visited_location import \
     LocationPointEqualToChippingLocation, AnimalNowInThisPoint, NextOfPreviousEqualThisLocation, \
     UpdateToSameLocationPoint, UpdatedFirstPointToChippingPoint
 from src.domain.animal.exceptions.animal import AnimalIsDead
+from src.domain.common.validations.int_fields_validations import validation_of_min_allowable_int
 
 
 def add_visited_location(animal: Animal, location_point_id: int):
@@ -19,13 +20,13 @@ def add_visited_location(animal: Animal, location_point_id: int):
         if animal.visited_locations[-1].location_point_id == location_point_id:
             raise AnimalNowInThisPoint(animal.id, location_point_id)
 
-    visited_location = AnimalVisitedLocation.create(location_point_id=location_point_id,
+    visited_location = AnimalVisitedLocation.create(location_point_id=location_point_id, animal_id=animal.id,
                                                     datetime_of_visit=datetime.utcnow())
     animal.update(visited_locations=[visited_location])
 
 
 def change_visited_location(animal: Animal, visited_location_id: int,
-                            new_location_point_id: int) -> AnimalVisitedLocation:
+                            new_location_point_id: int) -> None:
     visited_location = animal.get_visited_location(visited_location_id)
     location_index = animal.visited_locations.index(visited_location)
 
@@ -48,6 +49,7 @@ def change_visited_location(animal: Animal, visited_location_id: int,
 
 
 def delete_visited_location(animal: Animal, visited_location_id) -> None:
+    validation_of_min_allowable_int(visited_location_id, 'visited_location_id', 0, '<=')
     visited_location = animal.get_visited_location(visited_location_id)
 
     index_visited_location = animal.visited_locations.index(visited_location)

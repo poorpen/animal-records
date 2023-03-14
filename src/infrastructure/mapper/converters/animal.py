@@ -63,7 +63,7 @@ def animal_entity_to_dto_converter(data: Animal) -> AnimalDTO:
 
 @converter(Animal, AnimalDB)
 def animal_entity_to_model_converter(data: Animal) -> AnimalDB:
-    animal_type_models = [TypeOfSpecificAnimalDB(animal_type_id=animal_type.animal_type_id, animal_id=data.id)
+    animal_type_models = [TypeOfSpecificAnimalDB(animal_type_id=animal_type.animal_type_id)
                           for animal_type in data.animal_types]
     visited_location_models = [AnimalVisitedLocationDB(
         id=visited_location.id,
@@ -90,7 +90,6 @@ def animal_entity_to_model_converter(data: Animal) -> AnimalDB:
 def animal_model_to_entity_converter(data: AnimalDB) -> Animal:
     animal_types_entities = [
         TypeOfSpecificAnimal(
-            animal_id=data.id,
             animal_type_id=animal_type.animal_type_id
         )
         for animal_type in data.animal_types]

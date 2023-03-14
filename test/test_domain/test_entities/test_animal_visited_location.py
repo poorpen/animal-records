@@ -14,6 +14,7 @@ from src.domain.animal.exceptions.animal import AnimalIsDead
 
 from src.domain.animal.value_objects.life_status import LifeStatus
 from src.domain.animal.entities.animal_visited_location import AnimalVisitedLocation
+from src.domain.common.exceptions.validation import IntegerMin
 
 from test.test_domain.test_entities.common import animal
 
@@ -39,6 +40,11 @@ def test_add_visited_location_negative_third(animal, visited_location):
     animal.visited_locations.append(visited_location)
     with pytest.raises(AnimalNowInThisPoint):
         add_visited_location(animal, visited_location.location_point_id)
+
+
+def test_add_visited_location_negative_fourth(animal):
+    with pytest.raises(IntegerMin):
+        add_visited_location(animal, 0)
 
 
 @mock.patch('src.domain.animal.services.anima_visited_locations.datetime')
@@ -98,6 +104,17 @@ def test_change_visited_location_negative_fifth(animal, visited_location):
     animal.update(visited_locations=[visited_location])
     with pytest.raises(UpdatedFirstPointToChippingPoint):
         change_visited_location(animal, visited_location.id, animal.chipping_location_id)
+
+
+def test_change_visited_location_negative_sixth(animal):
+    with pytest.raises(IntegerMin):
+        change_visited_location(animal, 0, 1)
+
+
+def test_change_visited_location_negative_seventh(animal, visited_location):
+    animal.visited_locations.append(visited_location)
+    with pytest.raises(IntegerMin):
+        change_visited_location(animal, 1, 0)
 
 
 def test_change_visited_location_positive(animal, visited_location):

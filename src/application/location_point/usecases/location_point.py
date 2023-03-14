@@ -8,8 +8,8 @@ from src.application.common.interfaces.mapper import IMapper
 
 from src.application.location_point.interfaces.uow.location_point_uow import ILocationPointUoW
 from src.application.location_point.dto.location_point import LocationPointDTO, CreateLocationPointDTO, \
-    ChangeLocationPointDTO
-from src.application.location_point.exceptions.location_point import PointAlreadyExist, PointNotFound
+    ChangeLocationPointDTO, LocationPointID
+from src.application.location_point.exceptions.location_point import PointAlreadyExist, AnimalAssociatedWithPoint
 
 logger = logging.getLogger(__name__)
 
@@ -57,15 +57,20 @@ class ChangeLocationPointUseCase(LocationPointUseCase):
 
 class GetLocationPoint(LocationPointUseCase):
 
-    async def __call__(self, point_id: int) -> LocationPointDTO:
-        return await self._uow.location_point_reader.get_location_by_id(point_id)
+    async def __call__(self, location_point: LocationPointID) -> LocationPointDTO:
+        return await self._uow.location_point_reader.get_location_by_id(location_point.id)
 
 
 class DeleteLocationPoint(LocationPointUseCase):
 
-    async def __call__(self, point_id: int) -> None:
-        await self._uow.location_point_repo.delete_location_point(point_id)
-        await self._uow.commit()
+    async def __call__(self, location_point: LocationPointID) -> None:
+        try:
+            await self._uow.location_point_repo.delete_location_point(location_point.id)
+            await self._uow.commit()
+        except AnimalAssociatedWithPoint:
+            await self._uow.rollback()
+            raise
+
 
 class LocationPointService:
 
@@ -79,8 +84,8 @@ class LocationPointService:
     async def change_location_point(self, location_point_dto: ChangeLocationPointDTO) -> LocationPointDTO:
         return await ChangeLocationPointUseCase(self._uow, self._mapper)(location_point_dto)
 
-    async def get_location_point(self, point_id: int) -> LocationPointDTO:
-        return await GetLocationPoint(self._uow, self._mapper)(point_id)
+    async def get_location_point(self, location_point: LocationPointID) -> LocationPointDTO:
+        return await GetLocationPoint(self._uow, self._mapper)(location_point)
 
-    async def delete_location_point(self, point_id: int) -> None:
-        await DeleteLocationPoint(self._uow, self._mapper)(point_id)
+    async def delete_location_point(self, location_point: LocationPointID) -> None:
+        await DeleteLocationPoint(self._uow, self._mapper)(location_point)

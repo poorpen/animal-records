@@ -9,6 +9,8 @@ from src.domain.common.entities.entity_merge import EntityMerge
 from src.domain.common.constants.empty import Empty
 from src.domain.common.utils.data_filter import data_filter
 
+from src.domain.common.validations.int_fields_validations import validation_of_min_allowable_int
+
 
 @dataclass
 class AnimalVisitedLocation(Entity, EntityMerge):
@@ -28,3 +30,13 @@ class AnimalVisitedLocation(Entity, EntityMerge):
     def update(self, location_point_id: int | Empty = Empty.UNSET) -> None:
         filtered_args = data_filter(location_point_id=location_point_id)
         self._merge(**filtered_args)
+
+    def __post_init__(self):
+        name = 'location_point_id'
+        location_id = getattr(self, name)
+        validation_of_min_allowable_int(location_id, name, 0, '<=')
+
+    def __post_merge__(self):
+        name = 'location_point_id'
+        location_id = getattr(self, name)
+        validation_of_min_allowable_int(location_id, name, 0, '<=')

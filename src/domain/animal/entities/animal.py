@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from datetime import datetime
 from typing import List
 
@@ -19,6 +19,10 @@ from src.domain.animal.exceptions.animal_visited_location import AnimalHasNoCurr
 
 from src.domain.animal.exceptions.type_of_specific_animal import AnimalNotHaveThisType
 
+from src.domain.common.validations.text_fields_validations import enum_validation
+from src.domain.common.validations.int_fields_validations import validation_of_min_allowable_int
+from src.domain.common.validations.id_fields_validateons import check_valid_ids_animal_types
+
 
 @dataclass
 class Animal(Entity, EntityMerge):
@@ -36,32 +40,27 @@ class Animal(Entity, EntityMerge):
     death_datetime: None | datetime
 
     @staticmethod
-    def create(animal_types: List[TypeOfSpecificAnimal],
+    def create(animal_types: List[int],
                weight: float,
                length: float,
                height: float,
-               gender: Gender,
+               gender: str,
                chipping_location_id: int,
-               chipper_id: int,
-               life_status: LifeStatus | None = None,
-               chipping_datetime: datetime | None = None,
-               animal_id: int | None = None,
-               visited_locations: List[AnimalVisitedLocation] | None = None,
-               death_datetime: datetime | None = None,
+               chipper_id: int
                ) -> Animal:
-
-        return Animal(id=animal_id, animal_types=animal_types, weight=weight, length=length, height=height,
-                      gender=gender, life_status=life_status, chipping_datetime=chipping_datetime,
+        animal_types_entities = [TypeOfSpecificAnimal.create(animal_type_id=type_id) for type_id in animal_types]
+        return Animal(id=None, animal_types=animal_types_entities, weight=weight, length=length, height=height,
+                      gender=gender, life_status=LifeStatus.ALIVE, chipping_datetime=datetime.utcnow(),
                       chipping_location_id=chipping_location_id, chipper_id=chipper_id,
-                      visited_locations=visited_locations if visited_locations else [],
-                      death_datetime=death_datetime)
+                      visited_locations=[],
+                      death_datetime=None)
 
     def update(self,
                weight: float | Empty = Empty.UNSET,
                length: float | Empty = Empty.UNSET,
                height: float | Empty = Empty.UNSET,
-               gender: Gender | Empty = Empty.UNSET,
-               life_status: LifeStatus | Empty = Empty.UNSET,
+               gender: str | Empty = Empty.UNSET,
+               life_status: str | Empty = Empty.UNSET,
                chipper_id: int | Empty = Empty.UNSET,
                chipping_location_id: int | Empty = Empty.UNSET,
                animal_types: List[TypeOfSpecificAnimal] | Empty = Empty.UNSET,
@@ -72,12 +71,6 @@ class Animal(Entity, EntityMerge):
                                     animal_types=animal_types,
                                     visited_locations=visited_locations)
         self._merge(**filtered_args)
-
-    def get_animal_type(self, animal_type_id):
-        for animal_type in self.animal_types:
-            if animal_type.animal_type_id == animal_type_id:
-                return animal_type
-        raise AnimalNotHaveThisType(animal_id=self.id, type_id=animal_type_id)
 
     def check_duplicate_types(self) -> TypeOfSpecificAnimal:
         for type_of_this_animal in self.animal_types:
@@ -90,9 +83,42 @@ class Animal(Entity, EntityMerge):
                 return True
         return False
 
+    def get_animal_type(self, animal_type_id):
+        validation_of_min_allowable_int(animal_type_id, 'animal_type_id', 0, '<=')
+        for animal_type in self.animal_types:
+            if animal_type.animal_type_id == animal_type_id:
+                return animal_type
+        raise AnimalNotHaveThisType(animal_id=self.id, type_id=animal_type_id)
+
     def get_visited_location(self, visited_location_id: int) -> AnimalVisitedLocation:
+        validation_of_min_allowable_int(visited_location_id, 'visited_location_id', 0, '<=')
         for location in self.visited_locations:
             if location.id == visited_location_id:
                 return location
         else:
             raise AnimalHasNoCurrentVisitedLocation(self.id, visited_location_id)
+
+    @staticmethod
+    def _validation_data(name, value):
+        if name in ('weight', 'length', 'height', 'chipping_location_id', 'chipper_id'):
+            validation_of_min_allowable_int(value, name, 0, '<=')
+        elif name == 'gender':
+            enum_validation(name, value, Gender)
+        elif name == 'animal_types':
+            check_valid_ids_animal_types(value, name)
+
+    def __post_init__(self):
+        for field in fields(self):
+            name = field.name
+            values = getattr(self, name)
+            self._validation_data(name, values)
+        self.gender = Gender(self.gender)
+
+    def __post_merge__(self):
+        for field in fields(self):
+            name = field.name
+            value = getattr(self, name)
+            self._validation_data(name, value)
+            if name == 'life_status':
+                enum_validation(name, value, LifeStatus)
+                self.life_status = LifeStatus(value)

@@ -11,9 +11,10 @@ from src.application.animal.exceptions.animal_visited_location import AnimalVisi
 from src.application.animal.interfaces.uow.animal_visited_location_uow import IAnimalVisitedLocationUoW
 from src.application.animal.interfaces.uow.animal_uow import IAnimalUoW
 
+from src.application.animal.dto.animal import AnimalID
 from src.application.animal.dto.animal_visited_location import \
     AddAnimalVisitedLocationDTO, AnimalVisitedLocationDTO, ChangeAnimalVisitedLocationDTO, SearchParametersDTO, \
-    AnimalVisitedLocationDTOs
+    AnimalVisitedLocationDTOs, AnimalVisitedLocationID
 
 
 class VisitedLocationUseCase(ABC):
@@ -66,9 +67,9 @@ class ChangeVisitedLocationUseCase(VisitedLocationUseCase):
 
 class DeleteVisitedLocationUseCase(VisitedLocationUseCase):
 
-    async def __call__(self, animal_id: int, visited_location_id: int) -> None:
-        animal = await self._uow.animal_repo.get_animal_by_id(animal_id)
-        delete_visited_location(animal, visited_location_id)
+    async def __call__(self, animal: AnimalID, visited_location: AnimalVisitedLocationID) -> None:
+        animal = await self._uow.animal_repo.get_animal_by_id(animal.id)
+        delete_visited_location(animal, visited_location.id)
         await self._uow.animal_repo.update_animal(animal)
         await self._uow.commit()
 
@@ -93,7 +94,7 @@ class AnimalVisitedLocationService:
             raise AnimalVisitedLocationNotFound(visited_location_dto.id)
         return await ChangeVisitedLocationUseCase(self._uow, self._mapper)(visited_location_dto)
 
-    async def delete_visited_location(self, animal_id: int, visited_location_id: int) -> None:
-        if not self._uow.animal_repo.check_exist_visited_location(visited_location_id):
-            raise AnimalVisitedLocationNotFound(visited_location_id)
-        await DeleteVisitedLocationUseCase(self._uow, self._mapper)(animal_id, visited_location_id)
+    async def delete_visited_location(self, animal: AnimalID, visited_location: AnimalVisitedLocationID) -> None:
+        if not self._uow.animal_repo.check_exist_visited_location(visited_location.id):
+            raise AnimalVisitedLocationNotFound(visited_location.id)
+        await DeleteVisitedLocationUseCase(self._uow, self._mapper)(animal, visited_location)

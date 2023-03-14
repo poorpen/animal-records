@@ -6,6 +6,7 @@ from src.domain.animal.exceptions.type_of_specific_animal import AnimalNotHaveTh
     AnimalAlreadyHaveThisType, AnimalOnlyHasThisType
 
 from src.domain.animal.entities.type_of_specific_animal import TypeOfSpecificAnimal
+from src.domain.common.exceptions.validation import IntegerMin
 
 from test.test_domain.test_entities.common import animal
 
@@ -20,11 +21,16 @@ def new_type_id():
     return 6
 
 
-def test_add_type_negative(animal):
+def test_add_type_negative_first(animal):
     animal_type_id = 1
     add_animal_type(animal, animal_type_id)
     with pytest.raises(AnimalAlreadyHaveThisType):
         add_animal_type(animal, animal_type_id)
+
+
+def test_add_type_negative_second(animal):
+    with pytest.raises(IntegerMin):
+        add_animal_type(animal, 0)
 
 
 def test_add_type_positive(animal):
@@ -66,6 +72,17 @@ def test_change_animal_type_negative_second(animal, old_type_id, new_type_id):
 def test_change_animal_type_negative_third(animal, old_type_id, new_type_id):
     with pytest.raises(AnimalNotHaveThisType):
         change_animal_type(animal, old_type_id, new_type_id)
+
+
+def test_change_animal_type_negative_fourth(animal):
+    with pytest.raises(IntegerMin):
+        change_animal_type(animal, 0, 1)
+
+
+def test_change_animal_type_negative_fifth(animal):
+    animal.animal_types.append(TypeOfSpecificAnimal(animal_id=1, animal_type_id=1))
+    with pytest.raises(IntegerMin):
+        change_animal_type(animal, 1, 0)
 
 
 def test_change_type_positive(animal, old_type_id, new_type_id):

@@ -1,4 +1,4 @@
-from typing import Type, TypeVar
+from typing import Type
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -31,6 +31,7 @@ class UoW(BaseUoW):
                  animal_repo: Type[IAnimalRepo],
                  animal_reader: Type[IAnimalReader],
                  animal_type_repo: Type[IAnimalTypeRepo],
+                 animal_type_reader: Type[IAnimalTypeReader],
                  location_point_repo: Type[ILocationPointRepo],
                  location_point_reader: Type[ILocationPointReader]
                  ):
@@ -40,5 +41,6 @@ class UoW(BaseUoW):
         self.animal_repo = animal_repo(session=session, mapper=mapper)
         self.animal_reader = animal_reader(session=session, mapper=mapper)
         self.animal_type_repo = animal_type_repo(session=session, mapper=mapper)
+        self.animal_type_reader = animal_type_reader(session=session, mapper=mapper)
         self.location_point_repo = location_point_repo(session=session, mapper=mapper)
         self.location_point_reader = location_point_reader(session=session, mapper=mapper)

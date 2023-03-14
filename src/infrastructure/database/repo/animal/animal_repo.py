@@ -16,7 +16,7 @@ from src.application.account.exceptions.account import AccountNotFoundByID
 from src.application.location_point.exceptions.location_point import PointNotFound
 from src.application.animal_type.exceptions.animal_type import AnimalTypeNotFound
 
-from src.application.animal.exceptions.animal import AnimalNotFound
+from src.application.animal.exceptions.animal import AnimalNotFound, AnimalHaveVisitedLocation
 
 from src.application.animal.dto.animal import AnimalDTO, AnimalDTOs
 from src.application.animal.dto.animal_visited_location import AnimalVisitedLocationDTOs
@@ -75,7 +75,10 @@ class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
 
     async def delete_animal(self, animal_id: int) -> None:
         sql = delete(AnimalDB).where(AnimalDTO.id == animal_id).returning(AnimalDB.id)
-        result = await self._session.execute(sql)
+        try:
+            result = await self._session.execute(sql)
+        except IntegrityError:
+            raise AnimalHaveVisitedLocation(animal_id)
         deleted_row_id = result.scalar()
         if not deleted_row_id:
             raise AnimalNotFound(animal_id)
@@ -134,7 +137,7 @@ class AnimalReader(SQLAlchemyRepo, IAnimalReader, IAnimalVisitedLocationReader):
                            limit: int,
                            offset: int
                            ) -> AnimalDTOs:
-
+        self._validate_limit_offset(limit, offset)
         sql = self.animal_query_builder.get_query(start_datetime=start_datetime,
                                                   end_datetime=end_datetime,
                                                   chipper_id=chipper_id,
@@ -155,7 +158,7 @@ class AnimalReader(SQLAlchemyRepo, IAnimalReader, IAnimalVisitedLocationReader):
                                     limit: int,
                                     offset: int
                                     ) -> AnimalVisitedLocationDTOs:
-
+        self._validate_limit_offset(limit, offset)
         check_exist = exists(AnimalDB.id).where(AnimalDB.id == animal_id).select()
         result = await self._session.execute(check_exist)
         check_result = result.scalar()
