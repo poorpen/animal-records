@@ -7,6 +7,7 @@ from src.infrastructure.mapper.main import build_mapper
 from src.infrastructure.database.connections import get_database_connection
 from src.infrastructure.database.uow.uow import UoW
 from src.infrastructure.database.uow.main import build_uow
+from src.infrastructure.hasher import Hasher
 
 from src.presentation.config.config import Config
 from src.presentation.api.presenter.main import build_presenter
@@ -40,3 +41,7 @@ def uow_getter(session: AsyncSession = Depends(session_provider),
         session=session,
         mapper=mapper
     )
+
+
+def hasher_getter():
+    return Hasher()

@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-from src.application.common.exceptions.application import ApplicationException
+from src.application.animal.exceptions.common import BaseAnimalException
 
 
 @dataclass
-class AnimalNotFound(ApplicationException):
+class AnimalNotFound(BaseAnimalException):
     animal_id: int
 
     def message(self):
@@ -12,7 +12,7 @@ class AnimalNotFound(ApplicationException):
 
 
 @dataclass
-class AnimalHaveDuplicateTypes(ApplicationException):
+class AnimalHaveDuplicateTypes(BaseAnimalException):
     type_id: int
 
     def message(self):
@@ -20,7 +20,7 @@ class AnimalHaveDuplicateTypes(ApplicationException):
 
 
 @dataclass
-class AnimalHaveVisitedLocation(AnimalHaveDuplicateTypes):
+class AnimalHaveVisitedLocation(BaseAnimalException):
     animal_id: int
 
     def message(self):

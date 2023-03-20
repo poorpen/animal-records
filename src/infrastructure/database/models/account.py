@@ -7,7 +7,7 @@ class AccountDB(Base):
     __tablename__ = 'accounts'
 
     id = Column(Integer, primary_key=True)
-    first_name = Column(String(60))
-    last_name = Column(String(60))
+    first_name = Column(String)
+    last_name = Column(String)
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)

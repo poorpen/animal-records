@@ -10,5 +10,6 @@ def convert_dto_to_vm(data: LocationPointDTO) -> LocationPointVM:
     return LocationPointVM(
         id=data.id,
         latitude=data.latitude,
-        longitude=data.longitude
+        longitude=data.longitude,
+        by_alies=True
     )

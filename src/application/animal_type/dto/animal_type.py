@@ -1,12 +1,6 @@
 from dataclasses import dataclass
 
 from src.application.common.dto.base import DTO
-from src.application.common.dto.id_validator import IDValidator
-
-
-@dataclass
-class TypeID(IDValidator):
-    id: int
 
 
 @dataclass
@@ -23,5 +17,6 @@ class AnimalTypeDTO(BaseAnimalTypeDTO):
     id: int
 
 
-class ChangeAnimalTypeDTO(BaseAnimalTypeDTO, TypeID):
-    ...
+@dataclass
+class ChangeAnimalTypeDTO(BaseAnimalTypeDTO):
+    id: int

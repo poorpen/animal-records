@@ -8,3 +8,4 @@ class IHasher(Protocol):
 
     def verify(self, row: str, hashed_row: str) -> bool:
         raise NotImplementedError
+

@@ -4,12 +4,10 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from src.application.common.dto.base import DTO
-from src.application.common.dto.id_validator import IDValidator
-from src.application.animal.dto.common import ValidateAnimalID
 
 
 @dataclass
-class SearchParametersDTO(ValidateAnimalID, DTO):
+class SearchParametersVisitedLocationsDTO(DTO):
     animal_id: int
     start_datetime: datetime
     end_datetime: datetime
@@ -18,19 +16,16 @@ class SearchParametersDTO(ValidateAnimalID, DTO):
 
 
 @dataclass
-class AddAnimalVisitedLocationDTO(ValidateAnimalID, DTO):
+class AddAnimalVisitedLocationDTO(DTO):
+    animal_id: int
     location_point_id: int
 
 
 @dataclass
-class ChangeAnimalVisitedLocationDTO(ValidateAnimalID, IDValidator, DTO):
+class ChangeAnimalVisitedLocationDTO(DTO):
     id: int
     animal_id: int
     location_point_id: int
-
-    def __post_init__(self):
-        ValidateAnimalID.__post_init__(self)
-        IDValidator.__post_init__(self)
 
 
 @dataclass

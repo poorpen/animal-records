@@ -9,34 +9,28 @@ from src.domain.common.entities.entity_merge import EntityMerge
 from src.domain.common.constants.empty import Empty
 from src.domain.common.utils.data_filter import data_filter
 
-from src.domain.common.validations.int_fields_validations import validation_of_min_allowable_int
+from src.domain.animal.values_objects.common import AnimalID
+from src.domain.animal.values_objects.animal_visited_location import LocationPointID, VisitedLocationID
 
 
 @dataclass
 class AnimalVisitedLocation(Entity, EntityMerge):
-    id: int
+    id: VisitedLocationID
     datetime_of_visit: datetime
-    location_point_id: int
+    location_point_id: LocationPointID
+    animal_id: AnimalID
 
     @staticmethod
-    def create(location_point_id: int,
+    def create(location_point_id: LocationPointID,
                datetime_of_visit: datetime,
-               visited_location_id: int | None = None,
-               ) -> AnimalVisitedLocation:
-        return AnimalVisitedLocation(id=visited_location_id,
+               animal_id: AnimalID = None) -> AnimalVisitedLocation:
+        return AnimalVisitedLocation(id=VisitedLocationID(None),
+                                     animal_id=animal_id,
                                      datetime_of_visit=datetime_of_visit,
                                      location_point_id=location_point_id)
 
-    def update(self, location_point_id: int | Empty = Empty.UNSET) -> None:
-        filtered_args = data_filter(location_point_id=location_point_id)
+    def update(self,
+               visited_location_id: VisitedLocationID | Empty = Empty.UNSET,
+               location_point_id: LocationPointID | Empty = Empty.UNSET) -> None:
+        filtered_args = data_filter(location_point_id=location_point_id, id=visited_location_id)
         self._merge(**filtered_args)
-
-    def __post_init__(self):
-        name = 'location_point_id'
-        location_id = getattr(self, name)
-        validation_of_min_allowable_int(location_id, name, 0, '<=')
-
-    def __post_merge__(self):
-        name = 'location_point_id'
-        location_id = getattr(self, name)
-        validation_of_min_allowable_int(location_id, name, 0, '<=')

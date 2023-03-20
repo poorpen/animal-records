@@ -4,8 +4,7 @@ from typing import List
 from sqlalchemy import exists, insert, select, delete
 from sqlalchemy.exc import IntegrityError
 
-from src.domain.animal.value_objects.gender import Gender
-from src.domain.animal.value_objects.life_status import LifeStatus
+from src.domain.animal.enums import LifeStatus, Gender
 from src.domain.animal.entities.animal import Animal
 from src.domain.animal.entities.type_of_specific_animal import TypeOfSpecificAnimal
 from src.domain.animal.entities.animal_visited_location import AnimalVisitedLocation
@@ -23,6 +22,7 @@ from src.application.animal.dto.animal_visited_location import AnimalVisitedLoca
 from src.application.animal.interfaces.repo.animal_visited_location_repo import IAnimalVisitedLocationRepo, \
     IAnimalVisitedLocationReader
 from src.application.animal.interfaces.repo.animal_repo import IAnimalRepo, IAnimalReader
+from src.domain.animal.values_objects.common import AnimalID
 
 from src.infrastructure.database.models.type_of_specific_animal import TypeOfSpecificAnimalDB
 from src.infrastructure.database.models.animal import AnimalDB
@@ -36,14 +36,14 @@ from src.infrastructure.database.repo.animal.visited_location_query_builder impo
 class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
 
     async def add_animal(self, animal: Animal) -> int:
-        sql = insert(AnimalDB).values(weight=animal.weight,
-                                      length=animal.length,
-                                      height=animal.height,
-                                      gender=animal.gender,
-                                      life_status=animal.life_status,
+        sql = insert(AnimalDB).values(weight=animal.weight.to_fload(),
+                                      length=animal.length.to_fload(),
+                                      height=animal.height.to_fload(),
+                                      gender=animal.gender.to_enum(),
+                                      life_status=animal.life_status.to_enum(),
                                       chipping_datetime=animal.chipping_datetime,
-                                      chipping_location_id=animal.chipping_location_id,
-                                      chipper_id=animal.chipper_id,
+                                      chipping_location_id=animal.chipping_location_id.to_id(),
+                                      chipper_id=animal.chipper_id.to_id(),
                                       death_datetime=animal.death_datetime).returning(AnimalDB.id)
 
         try:
@@ -53,16 +53,18 @@ class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
 
         row_id = result.scalar()
 
-        await self._add_animal_types(row_id, animal.animal_types)
+        await self._add_animal_types(animal_id=row_id, current_animal_type=animal.animal_types)
 
-        return row_id
+        refreshed_model = await self._session.get(AnimalDB, row_id)
 
-    async def get_animal_by_id(self, animal_id: int) -> Animal:
-        sql = select(AnimalDTO).where(AnimalDTO.id == animal_id)
+        return self._mapper.load(Animal, refreshed_model)
+
+    async def get_animal_by_id(self, animal_id: AnimalID) -> Animal:
+        sql = select(AnimalDB).where(AnimalDB.id == animal_id.to_id())
         result = await self._session.execute(sql)
         model = result.scalar()
         if not model:
-            raise AnimalNotFound(animal_id)
+            raise AnimalNotFound(animal_id.to_id())
         return self._mapper.load(Animal, model)
 
     async def update_animal(self, animal: Animal) -> Animal:
@@ -73,15 +75,15 @@ class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
             raise self._error_parser(animal, exc)
         return self._mapper.load(Animal, updated_animal)
 
-    async def delete_animal(self, animal_id: int) -> None:
-        sql = delete(AnimalDB).where(AnimalDTO.id == animal_id).returning(AnimalDB.id)
+    async def delete_animal(self, animal_id: AnimalID) -> None:
+        sql = delete(AnimalDB).where(AnimalDB.id == animal_id.to_id()).returning(AnimalDB.id)
         try:
             result = await self._session.execute(sql)
         except IntegrityError:
-            raise AnimalHaveVisitedLocation(animal_id)
+            raise AnimalHaveVisitedLocation(animal_id.to_id())
         deleted_row_id = result.scalar()
         if not deleted_row_id:
-            raise AnimalNotFound(animal_id)
+            raise AnimalNotFound(animal_id.to_id())
 
     async def check_exist_visited_location(self, visited_location_id: int) -> bool:
         sql = exists(AnimalVisitedLocationDB.id).where(AnimalVisitedLocationDB.id == visited_location_id).select()
@@ -93,7 +95,8 @@ class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
         for this_animal_type in current_animal_type:
             try:
                 await self._session.execute(
-                    insert(TypeOfSpecificAnimalDB).values(animal_id=animal_id, animal_type_id=this_animal_type)
+                    insert(TypeOfSpecificAnimalDB).values(animal_id=animal_id,
+                                                          animal_type_id=this_animal_type.animal_type_id.to_id())
                 )
             except IntegrityError as exc:
                 raise self._error_parser(this_animal_type, exc)
@@ -103,13 +106,13 @@ class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
                       exception: IntegrityError) -> ApplicationException:
         database_column = exception.__cause__.__cause__.constraint_name
         if database_column == 'animals_chipper_id_fkey':
-            return AccountNotFoundByID(entity.chipper_id)
+            return AccountNotFoundByID(entity.chipper_id.to_id())
         elif database_column == 'animals_chipping_location_id_fkey':
-            return PointNotFound(entity.chipping_location_id)
+            return PointNotFound(entity.chipping_location_id.to_id())
         elif database_column == 'animal_visited_location_location_point_id_fkey':
-            return PointNotFound(entity.location_point_id)
+            return PointNotFound(entity.location_point_id.to_id())
         elif database_column == 'type_of_specific_animal_animal_type_id_fkey':
-            return AnimalTypeNotFound(entity.animal_type_id)
+            return AnimalTypeNotFound(entity.animal_type_id.to_id())
 
 
 class AnimalReader(SQLAlchemyRepo, IAnimalReader, IAnimalVisitedLocationReader):
@@ -120,7 +123,8 @@ class AnimalReader(SQLAlchemyRepo, IAnimalReader, IAnimalVisitedLocationReader):
         self.visited_location_query_builder = GetVisitedLocationQuery()
 
     async def get_animal_by_id(self, animal_id: int) -> AnimalDTO:
-        sql = select(AnimalDB).where(AnimalDTO.id == animal_id)
+        self._validate_id(animal_id, 'animal_id')
+        sql = select(AnimalDB).where(AnimalDB.id == animal_id)
         result = await self._session.execute(sql)
         model = result.scalar()
         if not model:
@@ -148,7 +152,7 @@ class AnimalReader(SQLAlchemyRepo, IAnimalReader, IAnimalVisitedLocationReader):
                                                   limit=limit)
 
         result = await self._session.execute(sql)
-        models = result.scalars().all()
+        models = result.unique().scalars().all()
         return self._mapper.load(AnimalDTOs, models)
 
     async def get_visited_locations(self,

@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-from src.domain.common.exceptions.domain import DomainException
+from src.domain.animal.exceptions.common import BaseAnimalDomainException
 
 
 @dataclass
-class AnimalIsDead(DomainException):
+class AnimalIsDead(BaseAnimalDomainException):
     animal_id: int
 
     def message(self):
@@ -12,7 +12,7 @@ class AnimalIsDead(DomainException):
 
 
 @dataclass
-class AttemptToResurrectAnimal(DomainException):
+class AttemptToResurrectAnimal(BaseAnimalDomainException):
     animal_id: int
 
     def message(self):
@@ -20,7 +20,7 @@ class AttemptToResurrectAnimal(DomainException):
 
 
 @dataclass
-class ChippingLocationEqualFirstLocation(DomainException):
+class ChippingLocationEqualFirstLocation(BaseAnimalDomainException):
     animal_id: int
     chipping_location: int
 

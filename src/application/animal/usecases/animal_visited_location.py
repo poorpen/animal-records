@@ -1,5 +1,7 @@
 from abc import ABC
 
+from src.domain.animal.values_objects.common import AnimalID
+
 from src.domain.animal.services.anima_visited_locations import add_visited_location, change_visited_location, \
     delete_visited_location
 
@@ -11,10 +13,10 @@ from src.application.animal.exceptions.animal_visited_location import AnimalVisi
 from src.application.animal.interfaces.uow.animal_visited_location_uow import IAnimalVisitedLocationUoW
 from src.application.animal.interfaces.uow.animal_uow import IAnimalUoW
 
-from src.application.animal.dto.animal import AnimalID
 from src.application.animal.dto.animal_visited_location import \
-    AddAnimalVisitedLocationDTO, AnimalVisitedLocationDTO, ChangeAnimalVisitedLocationDTO, SearchParametersDTO, \
-    AnimalVisitedLocationDTOs, AnimalVisitedLocationID
+    AddAnimalVisitedLocationDTO, AnimalVisitedLocationDTO, ChangeAnimalVisitedLocationDTO, \
+    SearchParametersVisitedLocationsDTO, \
+    AnimalVisitedLocationDTOs
 
 
 class VisitedLocationUseCase(ABC):
@@ -26,7 +28,7 @@ class VisitedLocationUseCase(ABC):
 
 class GetAnimalVisitedLocations(VisitedLocationUseCase):
 
-    async def __call__(self, search_parameters_dto: SearchParametersDTO) -> AnimalVisitedLocationDTOs:
+    async def __call__(self, search_parameters_dto: SearchParametersVisitedLocationsDTO) -> AnimalVisitedLocationDTOs:
         return await self._uow.animal_reader.get_visited_locations(
             animal_id=search_parameters_dto.animal_id,
             start_datetime=search_parameters_dto.start_datetime,
@@ -39,7 +41,7 @@ class GetAnimalVisitedLocations(VisitedLocationUseCase):
 class AddVisitedLocationUseCase(VisitedLocationUseCase):
 
     async def __call__(self, visited_location_dto: AddAnimalVisitedLocationDTO) -> AnimalVisitedLocationDTO:
-        animal = await self._uow.animal_repo.get_animal_by_id(visited_location_dto.animal_id)
+        animal = await self._uow.animal_repo.get_animal_by_id(AnimalID(visited_location_dto.animal_id))
 
         add_visited_location(animal, visited_location_dto.location_point_id)
 
@@ -51,7 +53,7 @@ class AddVisitedLocationUseCase(VisitedLocationUseCase):
 class ChangeVisitedLocationUseCase(VisitedLocationUseCase):
 
     async def __call__(self, visited_location_dto: ChangeAnimalVisitedLocationDTO) -> AnimalVisitedLocationDTO:
-        animal = await self._uow.animal_repo.get_animal_by_id(visited_location_dto.animal_id)
+        animal = await self._uow.animal_repo.get_animal_by_id(AnimalID(visited_location_dto.animal_id))
 
         change_visited_location(animal, visited_location_dto.id, visited_location_dto.location_point_id)
         visited_location = animal.get_visited_location(visited_location_dto.id)
@@ -67,9 +69,9 @@ class ChangeVisitedLocationUseCase(VisitedLocationUseCase):
 
 class DeleteVisitedLocationUseCase(VisitedLocationUseCase):
 
-    async def __call__(self, animal: AnimalID, visited_location: AnimalVisitedLocationID) -> None:
-        animal = await self._uow.animal_repo.get_animal_by_id(animal.id)
-        delete_visited_location(animal, visited_location.id)
+    async def __call__(self, animal_id: int, visited_location_id: int) -> None:
+        animal = await self._uow.animal_repo.get_animal_by_id(AnimalID(animal_id))
+        delete_visited_location(animal, visited_location_id)
         await self._uow.animal_repo.update_animal(animal)
         await self._uow.commit()
 
@@ -80,7 +82,8 @@ class AnimalVisitedLocationService:
         self._uow = uow
         self._mapper = mapper
 
-    async def get_visited_location(self, search_parameters_dto: SearchParametersDTO) -> AnimalVisitedLocationDTOs:
+    async def get_visited_locations(self,
+                                    search_parameters_dto: SearchParametersVisitedLocationsDTO) -> AnimalVisitedLocationDTOs:
         return await GetAnimalVisitedLocations(self._uow, self._mapper)(search_parameters_dto)
 
     async def add_visited_location(self, visited_location_dto: AddAnimalVisitedLocationDTO) -> AnimalVisitedLocationDTO:
@@ -94,7 +97,7 @@ class AnimalVisitedLocationService:
             raise AnimalVisitedLocationNotFound(visited_location_dto.id)
         return await ChangeVisitedLocationUseCase(self._uow, self._mapper)(visited_location_dto)
 
-    async def delete_visited_location(self, animal: AnimalID, visited_location: AnimalVisitedLocationID) -> None:
-        if not self._uow.animal_repo.check_exist_visited_location(visited_location.id):
-            raise AnimalVisitedLocationNotFound(visited_location.id)
-        await DeleteVisitedLocationUseCase(self._uow, self._mapper)(animal, visited_location)
+    async def delete_visited_location(self, animal_id: int, visited_location_id: int) -> None:
+        if not self._uow.animal_repo.check_exist_visited_location(visited_location_id):
+            raise AnimalVisitedLocationNotFound(visited_location_id)
+        await DeleteVisitedLocationUseCase(self._uow, self._mapper)(animal_id, visited_location_id)

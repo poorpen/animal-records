@@ -23,7 +23,7 @@ class GetVisitedLocationQuery(BaseQueryBuilder):
         )
 
     def _select(self, offset: int, limit: int) -> GetVisitedLocationQuery:
-        self._query = select(AnimalVisitedLocationDB).orber_by(asc(AnimalVisitedLocationDB.datetime_of_visit)).offset(
+        self._query = select(AnimalVisitedLocationDB).order_by(asc(AnimalVisitedLocationDB.datetime_of_visit)).offset(
             offset).limit(limit)
 
         return self

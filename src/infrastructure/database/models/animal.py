@@ -1,10 +1,7 @@
-from datetime import datetime
-
 from sqlalchemy import Column, Integer, Float, Enum, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
-from src.domain.animal.value_objects.gender import Gender
-from src.domain.animal.value_objects.life_status import LifeStatus
+from src.domain.animal.enums import LifeStatus,Gender
 
 from src.infrastructure.database.models.base import Base
 

@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-from src.application.common.exceptions.application import ApplicationException
+from src.application.animal.exceptions.common import BaseAnimalException
 
 
 @dataclass
-class AnimalVisitedLocationNotFound(ApplicationException):
+class AnimalVisitedLocationNotFound(BaseAnimalException):
     visited_location_id: int
 
     def message(self):

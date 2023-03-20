@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-from src.domain.common.exceptions.domain import DomainException
+from src.domain.animal.exceptions.common import BaseAnimalDomainException
 
 
 @dataclass
-class AnimalHasNoCurrentVisitedLocation(DomainException):
+class AnimalHasNoCurrentVisitedLocation(BaseAnimalDomainException):
     animal_id: int
     visited_location_id: int
 
@@ -14,7 +14,7 @@ class AnimalHasNoCurrentVisitedLocation(DomainException):
 
 
 @dataclass
-class BaseLocationPointException(DomainException):
+class BaseLocationPointException(BaseAnimalDomainException):
     animal_id: int
     location_point_id: int
 

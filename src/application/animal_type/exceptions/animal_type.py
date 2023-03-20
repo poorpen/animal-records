@@ -3,8 +3,12 @@ from dataclasses import dataclass
 from src.application.common.exceptions.application import ApplicationException
 
 
+class BaseAnimalTypeException(ApplicationException):
+    ...
+
+
 @dataclass
-class AnimalTypeNotFound(ApplicationException):
+class AnimalTypeNotFound(BaseAnimalTypeException):
     type_id: int
 
     def message(self):
@@ -12,7 +16,7 @@ class AnimalTypeNotFound(ApplicationException):
 
 
 @dataclass
-class AnimalTypeAlreadyExist(ApplicationException):
+class AnimalTypeAlreadyExist(BaseAnimalTypeException):
     type: str
 
     def message(self):
@@ -20,7 +24,7 @@ class AnimalTypeAlreadyExist(ApplicationException):
 
 
 @dataclass
-class AnimalHaveType(ApplicationException):
+class AnimalHaveType(BaseAnimalTypeException):
     type_id: int
 
     def message(self):

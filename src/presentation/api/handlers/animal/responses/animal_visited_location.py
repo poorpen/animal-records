@@ -9,4 +9,4 @@ class AnimalVisitedLocationVM(BaseModel):
 
 
 class AnimaVisitedLocationsVM(BaseModel):
-    visited_locations: List[AnimalVisitedLocationVM]
+    visited_locations: List[AnimalVisitedLocationVM] = Field(default=[])

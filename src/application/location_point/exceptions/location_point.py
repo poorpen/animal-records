@@ -3,8 +3,12 @@ from dataclasses import dataclass
 from src.application.common.exceptions.application import ApplicationException
 
 
+class BaseLocationPointException(ApplicationException):
+    ...
+
+
 @dataclass
-class PointNotFound(ApplicationException):
+class PointNotFound(BaseLocationPointException):
     location_point_id: int
 
     def message(self):
@@ -12,7 +16,7 @@ class PointNotFound(ApplicationException):
 
 
 @dataclass
-class PointAlreadyExist(ApplicationException):
+class PointAlreadyExist(BaseLocationPointException):
     latitude: float
     longitude: float
 
@@ -21,9 +25,8 @@ class PointAlreadyExist(ApplicationException):
 
 
 @dataclass
-class AnimalAssociatedWithPoint(ApplicationException):
+class AnimalAssociatedWithPoint(BaseLocationPointException):
     location_point_id: int
 
     def message(self):
         return f'Точка локации с location_point_id {self.location_point_id} связанна c животным'
-

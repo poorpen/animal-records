@@ -1,3 +1,4 @@
+from src.domain.animal_type.value_objects import AnimalTypeID, AnimalTypeName
 from src.domain.animal_type.entities.animal_type import AnimalType
 
 from src.application.animal_type.dto.animal_type import AnimalTypeDTO
@@ -17,22 +18,25 @@ def convert_to_dto(data: AnimalType) -> AnimalTypeDTO:
 
 @converter(AnimalType, AnimalTypeDTO)
 def animal_type_entity_to_dto_converter(data: AnimalType) -> AnimalTypeDTO:
-    return convert_to_dto(data)
+    return AnimalTypeDTO(
+        id=data.id.to_id(),
+        type=data.type.to_string()
+    )
 
 
 @converter(AnimalType, AnimalTypeDB)
 def anima_type_entity_to_model_converter(data: AnimalType) -> AnimalTypeDB:
     return AnimalTypeDB(
-        id=data.id,
-        type=data.type
+        id=data.id.to_id(),
+        type=data.type.to_string()
     )
 
 
 @converter(AnimalTypeDB, AnimalType)
 def animal_type_model_to_entity_converter(data: AnimalTypeDB) -> AnimalType:
     return AnimalType(
-        id=data.id,
-        type=data.type
+        id=AnimalTypeID(data.id),
+        type=AnimalTypeName(data.type)
 
     )
 

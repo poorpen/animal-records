@@ -9,13 +9,6 @@ class BaseModelException(DomainException):
 
 
 @dataclass
-class NoneField(BaseModelException):
-
-    def message(self):
-        return f'Ошибка валидации: поле {self.field} = null'
-
-
-@dataclass
 class EmptyField(BaseModelException):
 
     def message(self):
@@ -55,9 +48,7 @@ class EnumError(BaseModelException):
         return f'Ошибка валидации: передано значение {self.value} выходящее за рамки ожидаемых {self.expected_values}'
 
 
-class ListEmpty(BaseModelException):
+class InvalidID(BaseModelException):
 
     def message(self):
-        return f'Ошибка валидации: список {self.field} пустой'
-
-
+        return f'Ошибка валидации: переданный вами значение в поле {self.field} меньше нуля'

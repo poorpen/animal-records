@@ -2,17 +2,9 @@ from typing import List
 from datetime import datetime
 from dataclasses import dataclass
 
-from src.domain.animal.value_objects.life_status import LifeStatus
-from src.domain.animal.value_objects.gender import Gender
+from src.domain.animal.enums import LifeStatus
 
 from src.application.common.dto.base import DTO
-
-from src.application.common.dto.id_validator import IDValidator
-
-
-@dataclass
-class AnimalID(DTO, IDValidator):
-    id: int
 
 
 @dataclass
@@ -38,14 +30,17 @@ class BaseAnimalDTO(BaseAnimalDTO):
     height: float
 
 
+
 @dataclass
 class CreateAnimalDTO(BaseAnimalDTO):
     animal_types: List[int]
 
 
 @dataclass
-class UpdateAnimalDTO(BaseAnimalDTO, AnimalID):
+class UpdateAnimalDTO(BaseAnimalDTO):
+    id: int
     life_status: str
+
 
 
 @dataclass

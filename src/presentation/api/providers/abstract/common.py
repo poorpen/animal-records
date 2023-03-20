@@ -12,3 +12,7 @@ def mapper_provider():
 
 def presenter_provider():
     raise NotImplemented
+
+
+def hasher_provider():
+    raise NotImplemented

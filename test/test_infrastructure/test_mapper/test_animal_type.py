@@ -1,5 +1,6 @@
 import pytest
 
+from src.domain.animal_type.value_objects import AnimalTypeID, AnimalTypeName
 from src.domain.animal_type.entities.animal_type import AnimalType
 
 from src.application.animal_type.dto.animal_type import AnimalTypeDTO
@@ -11,7 +12,7 @@ from test.test_infrastructure.test_mapper.common import mapper
 
 @pytest.fixture
 def animal_type_entity():
-    return AnimalType(id=1, type='some_type')
+    return AnimalType(id=AnimalTypeID(1), type=AnimalTypeName('some_type'))
 
 
 @pytest.fixture

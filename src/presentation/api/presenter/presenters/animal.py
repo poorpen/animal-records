@@ -21,7 +21,8 @@ def animal_dto_to_vm(data: AnimalDTO) -> AnimalVM:
         visited_locations=data.visited_locations,
         chipper_id=data.chipper_id,
         chipping_location_id=data.chipping_location_id,
-        death_datetime=data.death_datetime.isoformat() if data.death_datetime else None
+        death_datetime=data.death_datetime.isoformat() if data.death_datetime else None,
+        by_alies=True
 
     )
 
@@ -30,7 +31,8 @@ def visited_location_dto_to_vm(data: AnimalVisitedLocationDTO) -> AnimalVisitedL
     return AnimalVisitedLocationVM(
         id=data.id,
         datetime_of_visit=data.datetime_of_visit.isoformat(),
-        location_point_id=data.location_point_id
+        location_point_id=data.location_point_id,
+        by_alies=True
     )
 
 
@@ -51,5 +53,5 @@ def convert_visited_location_dto_to_vm(data: AnimalVisitedLocationDTO) -> Animal
 
 @converter(AnimalVisitedLocationDTOs, AnimaVisitedLocationsVM)
 def convert_visited_location_dtos_to_vms(data: AnimalVisitedLocationDTOs) -> AnimaVisitedLocationsVM:
-    AnimaVisitedLocationsVM(
+    return AnimaVisitedLocationsVM(
         visited_locations=[visited_location_dto_to_vm(visited_location) for visited_location in data.visited_locations])

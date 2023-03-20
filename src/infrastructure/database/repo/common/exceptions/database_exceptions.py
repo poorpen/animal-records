@@ -8,14 +8,24 @@ from src.infrastructure.database.repo.common.exceptions.base import BaseRepoExce
 
 
 @dataclass
+class InvalidID(BaseRepoException):
+    field: str
+
+    def message(self):
+        return f'Ошибка валидации: значение в поле {self.field} <= 0'
+
+
+@dataclass
 class LimitError(BaseRepoException):
 
     def message(self):
-        return 'size <= 0'
+        return 'Ошибка валидации: size <= 0'
 
 
 @dataclass
 class OffsetError(BaseRepoException):
 
     def message(self):
-        return 'from < 0'
+        return 'Ошибка валидации: from < 0'
+
+

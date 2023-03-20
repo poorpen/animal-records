@@ -1,23 +1,49 @@
 from datetime import datetime
-from pydantic import BaseModel
+from dataclasses import dataclass
+from pydantic import BaseModel, Field, validator
 
-from src.domain.animal.value_objects.gender import Gender
-from src.domain.animal.value_objects.life_status import LifeStatus
-
-
-class SearchAnimalParameters(BaseModel):
-    chipper_id: int
-    chipping_location_id: int
-    life_status: LifeStatus
-    gender: Gender
-    start_datetime: str
-    end_datetime: str
-    limit: int
-    offset: int
+from src.domain.common.exceptions.validation import BaseModelException
 
 
-class SearchAnimalVisitedLocationParameters(BaseModel):
-    start_datetime: datetime
-    end_datetime: datetime
-    limit: int
-    offset: int
+@dataclass
+class ISODateTimeError(BaseModelException):
+    time_str: str
+
+    def message(self):
+        return f'переданная вами строка {self.time_str} не соответствует ISO формату'
+
+
+class SearchAnimalParametersVM(BaseModel):
+    start_datetime: str = Field(alias='startDateTime', default='')
+    end_datetime: str = Field(alias='endDateTime', default='')
+    chipper_id: int | str = Field(alias='chipperId', default='')
+    chipping_location_id: int | str = Field(alias='chippingLocationId', default='')
+    life_status: str = Field(alias='lifeStatus', default='')
+    gender: str = Field(alias='gender', default='')
+    offset: int = Field(default=0)
+    limit: int = Field(alias='size', default=10)
+
+    @validator('start_datetime', 'end_datetime')
+    def validate_datetime(cls, v, field):
+        if v:
+            try:
+                datetime.fromisoformat(v)
+            except ValueError:
+                raise ISODateTimeError(field.name, v)
+            return v
+
+
+class SearchAnimalVisitedLocationParametersVM(BaseModel):
+    start_datetime: str = Field(alias='startDateTime', default='')
+    end_datetime: str = Field(alias='endDateTime', default='')
+    offset: int = Field(default=0)
+    limit: int = Field(alias='size', default=10)
+
+    @validator('start_datetime', 'end_datetime')
+    def validate_datetime(cls, v, field):
+        if v:
+            try:
+                datetime.fromisoformat(v)
+            except ValueError:
+                raise ISODateTimeError(field.name, v)
+            return v

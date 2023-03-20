@@ -9,6 +9,7 @@ def bind_account_converters(mapper: Mapper):
     account.account_model_to_entity_converter(mapper=mapper)
     account.account_model_to_dto_converter(mapper=mapper)
     account.account_models_to_dtos_converter(mapper=mapper)
+    account.account_dto_to_entity_converter(mapper=mapper)
 
 
 def bind_location_point_converters(mapper: Mapper):

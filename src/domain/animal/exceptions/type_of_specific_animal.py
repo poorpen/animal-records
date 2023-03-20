@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 
-from src.domain.common.exceptions.domain import DomainException
+
+from src.domain.animal.exceptions.common import BaseAnimalDomainException
 
 
 @dataclass
-class BaseAnimalTypeException(DomainException):
+class BaseAnimalTypeException(BaseAnimalDomainException):
     animal_id: int
     type_id: int
 
@@ -28,7 +29,7 @@ class AnimalOnlyHasThisType(BaseAnimalTypeException):
 
 
 @dataclass
-class AnimalAlreadyHaveThisTypes(DomainException):
+class AnimalAlreadyHaveThisTypes(BaseAnimalDomainException):
     animal_id: int
     old_type: int
     new_type: int

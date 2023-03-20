@@ -1,5 +1,6 @@
 from typing import Protocol
 
+from src.domain.account.value_objects import AccountID, Email
 from src.domain.account.entities.account import Account
 
 from src.application.account.dto.account import AccountDTO, AccountDTOs
@@ -7,7 +8,7 @@ from src.application.account.dto.account import AccountDTO, AccountDTOs
 
 class IAccountRepo(Protocol):
 
-    async def get_account_by_id(self, account_id: int) -> Account:
+    async def get_account_by_id(self, account_id: AccountID) -> Account:
         raise NotImplementedError
 
     async def get_account_by_email(self, email: str) -> Account:
@@ -19,7 +20,7 @@ class IAccountRepo(Protocol):
     async def update_account(self, account: Account) -> None:
         raise NotImplementedError
 
-    async def delete_account(self, account_id: int) -> None:
+    async def delete_account(self, account_id: AccountID) -> None:
         raise NotImplementedError
 
 

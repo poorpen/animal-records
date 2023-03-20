@@ -4,8 +4,7 @@ from datetime import datetime
 from sqlalchemy import select, asc
 from sqlalchemy.sql.selectable import Select
 
-from src.domain.animal.value_objects.gender import Gender
-from src.domain.animal.value_objects.life_status import LifeStatus
+from src.domain.animal.enums import LifeStatus, Gender
 
 from src.infrastructure.database.repo.common.base_query_bilder import BaseQueryBuilder
 from src.infrastructure.database.models.animal import AnimalDB

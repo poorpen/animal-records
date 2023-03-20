@@ -1,4 +1,16 @@
-def account_provider():
+def auth_service_provider():
+    raise NotImplemented
+
+
+def account_provider_with_auth():
+    raise NotImplemented
+
+
+def account_provider_with_optional_auth():
+    raise NotImplemented
+
+
+def account_provider_without_auth():
     raise NotImplemented
 
 

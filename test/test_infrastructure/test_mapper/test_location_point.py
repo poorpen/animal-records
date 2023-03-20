@@ -1,5 +1,6 @@
 import pytest
 
+from src.domain.location_point.value_objects import LocationPointID, Latitude, Longitude
 from src.domain.location_point.entities.location_point import LocationPoint
 
 from src.application.location_point.dto.location_point import LocationPointDTO
@@ -11,7 +12,7 @@ from test.test_infrastructure.test_mapper.common import mapper
 
 @pytest.fixture
 def location_point_entity():
-    return LocationPoint(id=1, latitude=1.1, longitude=1.1)
+    return LocationPoint(id=LocationPointID(1), latitude=Latitude(1.1), longitude=Longitude(1.1))
 
 
 @pytest.fixture
@@ -46,6 +47,3 @@ def test_model_to_entity(mapper, location_point_model, location_point_entity):
 def test_model_to_dto(mapper, location_point_model, location_point_dto):
     result = mapper.load(LocationPointDTO, location_point_model)
     assert result == location_point_dto
-
-
-

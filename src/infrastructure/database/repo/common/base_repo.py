@@ -6,8 +6,8 @@ from src.domain.common.entities.entity import Entity
 
 from src.application.common.interfaces.mapper import IMapper
 
-from src.infrastructure.database.repo.common.exceptions.database_exceptions import IDLessThanOrEqualZero, LimitError, \
-    OffsetError
+from src.infrastructure.database.repo.common.exceptions.database_exceptions import LimitError, \
+    OffsetError, InvalidID
 
 
 class SQLAlchemyRepo:
@@ -22,3 +22,8 @@ class SQLAlchemyRepo:
             raise LimitError()
         elif offset < 0:
             raise OffsetError()
+
+    @staticmethod
+    def _validate_id(some_id: int, field: str):
+        if some_id <= 0:
+            raise InvalidID(field)

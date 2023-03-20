@@ -1,7 +1,10 @@
 import pytest
 
+from src.domain.account.value_objects import AccountID, FirstName, LastName, Email
 from src.domain.account.entities.account import Account
+
 from src.application.account.dto.account import AccountDTO, AccountDTOs
+
 from src.infrastructure.database.models.account import AccountDB
 
 from test.test_infrastructure.test_mapper.common import mapper
@@ -9,7 +12,10 @@ from test.test_infrastructure.test_mapper.common import mapper
 
 @pytest.fixture
 def account_entity():
-    return Account(id=1, first_name='first_name', last_name='last_name', email='roma.polovik@mail.ru',
+    return Account(id=AccountID(1),
+                   first_name=FirstName('first_name'),
+                   last_name=LastName('last_name'),
+                   email=Email('roma.polovik@mail.ru'),
                    password='password')
 
 

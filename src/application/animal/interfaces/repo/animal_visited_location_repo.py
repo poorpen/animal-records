@@ -2,6 +2,7 @@ from datetime import datetime
 
 from typing import Protocol
 
+from src.domain.animal.values_objects.common import AnimalID
 from src.application.animal.dto.animal_visited_location import AnimalVisitedLocationDTOs
 
 
