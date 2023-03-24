@@ -6,12 +6,6 @@ from src.domain.animal.values_objects.common import AnimalID
 from src.application.animal.dto.animal_visited_location import AnimalVisitedLocationDTOs
 
 
-class IAnimalVisitedLocationRepo(Protocol):
-
-    async def check_exist_visited_location(self, visited_location_id: int) -> bool:
-        raise NotImplementedError
-
-
 class IAnimalVisitedLocationReader(Protocol):
 
     async def get_visited_locations(self,

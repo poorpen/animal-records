@@ -23,13 +23,14 @@ from src.presentation.api.handlers.animal.responses.animal_visited_location impo
 from src.presentation.api.handlers.animal.controllers.common.router import animals_router
 
 
-@animals_router.put('/{animal_id}', response_model=AnimalsVM)
+@animals_router.put('/{animal_id}', response_model=AnimalVM)
 async def update_animal(
         animal_id: int,
         animal_data: UpdateAnimalVM,
         animal_service: AnimalService = Depends(animal_provider),
-        presenter: Presenter = Depends(presenter_provider)
-) -> AnimalsVM:
+        presenter: Presenter = Depends(presenter_provider),
+        _: Any = Depends(auth_provider)
+) -> AnimalVM:
     update_animal_dto = UpdateAnimalDTO(
         id=animal_id,
         weight=animal_data.weight,
@@ -41,7 +42,7 @@ async def update_animal(
         chipping_location_id=animal_data.chipping_location_id
     )
     animal_dto = await animal_service.update_animal(update_animal_dto)
-    return presenter.load(AnimalsVM, animal_dto)
+    return presenter.load(AnimalVM, animal_dto)
 
 
 @animals_router.put('/{animal_id}/types', response_model=AnimalVM)
@@ -58,11 +59,11 @@ async def change_type_of_specific_animal(
         old_type_id=type_data.old_type_id,
         new_type_id=type_data.new_type_id
     )
-    animal_dto = specific_animal_type_service.change_type(change_type_of_specific_animal_dto)
+    animal_dto = await specific_animal_type_service.change_type(change_type_of_specific_animal_dto)
     return presenter.load(AnimalVM, animal_dto)
 
 
-@animals_router.post('/{animal_id}/locations/{point_id}', response_model=AnimalVisitedLocationVM)
+@animals_router.put('/{animal_id}/locations', response_model=AnimalVisitedLocationVM)
 async def change_visited_location(
         animal_id: int,
         visited_location_data: ChangeAnimalVisitedLocationVM,

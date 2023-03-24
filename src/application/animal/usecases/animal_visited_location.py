@@ -93,11 +93,7 @@ class AnimalVisitedLocationService:
     async def change_visited_location(self,
                                       visited_location_dto: ChangeAnimalVisitedLocationDTO
                                       ) -> AnimalVisitedLocationDTO:
-        if not self._uow.animal_repo.check_exist_visited_location(visited_location_dto.location_point_id):
-            raise AnimalVisitedLocationNotFound(visited_location_dto.id)
         return await ChangeVisitedLocationUseCase(self._uow, self._mapper)(visited_location_dto)
 
     async def delete_visited_location(self, animal_id: int, visited_location_id: int) -> None:
-        if not self._uow.animal_repo.check_exist_visited_location(visited_location_id):
-            raise AnimalVisitedLocationNotFound(visited_location_id)
         await DeleteVisitedLocationUseCase(self._uow, self._mapper)(animal_id, visited_location_id)

@@ -27,10 +27,12 @@ class SearchAnimalParametersVM(BaseModel):
     def validate_datetime(cls, v, field):
         if v:
             try:
-                datetime.fromisoformat(v)
+                return datetime.fromisoformat(v.replace('Z', '+00:00'))
             except ValueError:
                 raise ISODateTimeError(field.name, v)
-            return v
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class SearchAnimalVisitedLocationParametersVM(BaseModel):
@@ -43,7 +45,9 @@ class SearchAnimalVisitedLocationParametersVM(BaseModel):
     def validate_datetime(cls, v, field):
         if v:
             try:
-                datetime.fromisoformat(v)
+                return datetime.fromisoformat(v.replace('Z', '+00:00'))
             except ValueError:
                 raise ISODateTimeError(field.name, v)
-            return v
+
+    class Config:
+        allow_population_by_field_name = True

@@ -82,6 +82,17 @@ class GetAnimal(AnimalUseCase):
         return await self._uow.animal_reader.get_animal_by_id(animal_id)
 
 
+class DeleteAnimal(AnimalUseCase):
+
+    async def __call__(self, animal_id: int) -> None:
+        try:
+            await self._uow.animal_repo.delete_animal(AnimalID(animal_id))
+            await self._uow.commit()
+        except AnimalHaveVisitedLocation:
+            await self._uow.rollback()
+            raise
+
+
 class SearchAnimal(AnimalUseCase):
 
     async def __call__(self, search_parameters_dto: SearchParametersDTO) -> AnimalDTOs:
@@ -95,17 +106,6 @@ class SearchAnimal(AnimalUseCase):
             limit=search_parameters_dto.limit,
             offset=search_parameters_dto.offset
         )
-
-
-class DeleteAnimal(AnimalUseCase):
-
-    async def __call__(self, animal_id: int) -> None:
-        try:
-            await self._uow.animal_repo.delete_animal(AnimalID(animal_id))
-            await self._uow.commit()
-        except AnimalHaveVisitedLocation:
-            await self._uow.rollback()
-            raise
 
 
 class AnimalService:

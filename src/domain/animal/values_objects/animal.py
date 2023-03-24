@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from src.domain.common.exceptions.validation import EnumError
 from src.domain.common.value_objects.base import ValueObject
 from src.domain.common.value_objects.id import IDVO
-from src.domain.common.value_objects.interger import FloatVO
+from src.domain.common.value_objects.integer import FloatVO
 
 from src.domain.animal.enums import LifeStatus, Gender
 

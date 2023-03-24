@@ -30,13 +30,13 @@ class GetAccountQuery(BaseQueryBuilder):
 
     def _with_first_name(self, first_name: str) -> GetAccountQuery:
         if first_name:
-            self._query = self._query.where(AccountDB.first_name == first_name)
+            self._query = self._query.where(func.lower(AccountDB.first_name).like(func.lower(f'%{first_name}%')))
 
         return self
 
     def _with_last_name(self, last_name: str) -> GetAccountQuery:
         if last_name:
-            self._query = self._query.where(AccountDB.last_name == last_name)
+            self._query = self._query.where(func.lower(AccountDB.last_name).like(func.lower(f'%{last_name}%')))
 
         return self
 

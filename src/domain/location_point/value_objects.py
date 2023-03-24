@@ -1,6 +1,6 @@
 from src.domain.common.exceptions.validation import IntegerMin, IntegerMax
 from src.domain.common.value_objects.id import IDVO
-from src.domain.common.value_objects.interger import FloatVO
+from src.domain.common.value_objects.integer import FloatVO
 
 
 class LocationPointID(IDVO):
@@ -13,7 +13,7 @@ class LocationPointValidate(FloatVO):
         if self.value < self.min_value:
             raise IntegerMin(field=self.__field_name__, min_integer=self.min_value)
         elif self.max_value and self.value > self.max_value:
-            raise IntegerMax(field=self.__field_name__, max_integer=self.min_value)
+            raise IntegerMax(field=self.__field_name__, max_integer=self.max_value)
 
 
 class Latitude(LocationPointValidate):

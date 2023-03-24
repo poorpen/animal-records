@@ -20,9 +20,6 @@ class IAnimalTypeRepo(Protocol):
     async def delete_type(self, animal_type_id: AnimalTypeID) -> None:
         raise NotImplementedError
 
-    async def check_exist(self, animal_type_id: AnimalTypeID) -> bool:
-        raise NotImplementedError
-
 
 class IAnimalTypeReader(Protocol):
 

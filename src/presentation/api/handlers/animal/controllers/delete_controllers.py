@@ -7,7 +7,6 @@ from src.application.animal.usecases.animal import AnimalService
 from src.application.animal.usecases.animal_visited_location import AnimalVisitedLocationService
 from src.application.animal.usecases.type_of_specific_animal import TypeOfSpecificAnimalService
 
-
 from src.presentation.api.providers.abstract.auth import auth_provider
 from src.presentation.api.providers.abstract.services import animal_provider, type_of_specific_animal_provider, \
     visited_location_provider
@@ -33,7 +32,7 @@ async def delete_animal_type_of_specific_animal(
         type_id: int,
         specific_animal_type_service: TypeOfSpecificAnimalService = Depends(type_of_specific_animal_provider),
         presenter: Presenter = Depends(presenter_provider),
-) -> AnimalVM:
+        _: Any = Depends(auth_provider)) -> AnimalVM:
     animal_dto = await specific_animal_type_service.delete_type(animal_id=animal_id, animal_type_id=type_id)
     return presenter.load(AnimalVM, animal_dto)
 
@@ -43,6 +42,7 @@ async def delete_visited_locations(
         animal_id: int,
         visited_location_id: int,
         visited_location_service: AnimalVisitedLocationService = Depends(visited_location_provider),
+        _: Any = Depends(auth_provider)
 ) -> JSONResponse:
     await visited_location_service.delete_visited_location(animal_id=animal_id, visited_location_id=visited_location_id)
     return JSONResponse(status_code=200, content={'message': "Запрос успешно выполнен"})

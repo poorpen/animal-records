@@ -73,7 +73,7 @@ class Animal(Entity, EntityMerge):
                visited_locations: List[AnimalVisitedLocation] | Empty = Empty.UNSET
                ) -> None:
         filtered_args = data_filter(weight=weight, length=length, height=height, gender=gender, life_status=life_status,
-                                    chipper=chipper_id, chipping_location=chipping_location_id,
+                                    chipper_id=chipper_id, chipping_location_id=chipping_location_id,
                                     animal_types=animal_types,
                                     visited_locations=visited_locations, id=animal_id)
         self._merge(**filtered_args)
@@ -92,14 +92,14 @@ class Animal(Entity, EntityMerge):
     def get_animal_type(self, animal_type_id: int):
         animal_type_vo = AnimalTypeID(animal_type_id)
         for animal_type in self.animal_types:
-            if animal_type.animal_type_id == animal_type_vo:
+            if animal_type.animal_type_id.to_id() == animal_type_vo.to_id():
                 return animal_type
-        raise AnimalNotHaveThisType(animal_id=self.id.to_id(), type_id=animal_type_id)
+        raise AnimalNotHaveThisType(animal_id=self.id, type_id=animal_type_vo)
 
     def get_visited_location(self, visited_location_id: int) -> AnimalVisitedLocation:
         visited_location_vo = VisitedLocationID(visited_location_id)
         for location in self.visited_locations:
-            if location.id == visited_location_vo:
+            if location.id.to_id() == visited_location_vo.to_id():
                 return location
         else:
-            raise AnimalHasNoCurrentVisitedLocation(self.id.to_id(), visited_location_id)
+            raise AnimalHasNoCurrentVisitedLocation(self.id, visited_location_vo)

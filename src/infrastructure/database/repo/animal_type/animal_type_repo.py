@@ -34,9 +34,10 @@ class AnimalTypeRepo(SQLAlchemyRepo, IAnimalTypeRepo):
         return self._mapper.load(AnimalType, model)
 
     async def change_type(self, animal_type: AnimalType) -> None:
-        sql = update(AnimalTypeDB).values(type=animal_type.type.to_string()).where(AnimalTypeDB.id == animal_type.id.to_id())
+        type_db = self._mapper.load(AnimalTypeDB, animal_type)
         try:
-            await self._session.execute(sql)
+            await self._session.merge(type_db)
+            await self._session.flush()
         except IntegrityError as exc:
             raise self._error_parser(animal_type, exc)
 
@@ -49,12 +50,6 @@ class AnimalTypeRepo(SQLAlchemyRepo, IAnimalTypeRepo):
         deleted_row_id = result.scalar()
         if not deleted_row_id:
             raise AnimalTypeNotFound(animal_type_id.to_id())
-
-    async def check_exist(self, animal_type_id) -> bool:
-        sql = exists(AnimalTypeDB.id).where(AnimalTypeDB.id == animal_type_id).select()
-        result = await self._session.execute(sql)
-        check_result = result.scalar()
-        return check_result
 
     @staticmethod
     def _error_parser(animal_type: AnimalType, exception: IntegrityError) -> ApplicationException:

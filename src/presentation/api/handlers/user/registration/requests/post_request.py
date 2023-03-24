@@ -6,3 +6,6 @@ class AccountCreateVM(BaseModel):
     last_name: str = Field(alias='lastName')
     email: str = Field(alias='email')
     password: str = Field(alias='password')
+
+    class Config:
+        allow_population_by_field_name = True

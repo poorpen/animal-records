@@ -19,8 +19,7 @@ from src.application.animal.exceptions.animal import AnimalNotFound, AnimalHaveV
 
 from src.application.animal.dto.animal import AnimalDTO, AnimalDTOs
 from src.application.animal.dto.animal_visited_location import AnimalVisitedLocationDTOs
-from src.application.animal.interfaces.repo.animal_visited_location_repo import IAnimalVisitedLocationRepo, \
-    IAnimalVisitedLocationReader
+from src.application.animal.interfaces.repo.animal_visited_location_repo import IAnimalVisitedLocationReader
 from src.application.animal.interfaces.repo.animal_repo import IAnimalRepo, IAnimalReader
 from src.domain.animal.values_objects.common import AnimalID
 
@@ -33,7 +32,7 @@ from src.infrastructure.database.repo.animal.animal_query_builder import GetAnim
 from src.infrastructure.database.repo.animal.visited_location_query_builder import GetVisitedLocationQuery
 
 
-class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
+class AnimalRepo(SQLAlchemyRepo, IAnimalRepo):
 
     async def add_animal(self, animal: Animal) -> int:
         sql = insert(AnimalDB).values(weight=animal.weight.to_fload(),
@@ -71,6 +70,7 @@ class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
         anima_db = self._mapper.load(AnimalDB, animal)
         try:
             updated_animal = await self._session.merge(anima_db)
+            await self._session.flush()
         except IntegrityError as exc:
             raise self._error_parser(animal, exc)
         return self._mapper.load(Animal, updated_animal)
@@ -85,12 +85,6 @@ class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
         if not deleted_row_id:
             raise AnimalNotFound(animal_id.to_id())
 
-    async def check_exist_visited_location(self, visited_location_id: int) -> bool:
-        sql = exists(AnimalVisitedLocationDB.id).where(AnimalVisitedLocationDB.id == visited_location_id).select()
-        result = await self._session.execute(sql)
-        check_result = result.scalar()
-        return check_result
-
     async def _add_animal_types(self, animal_id: int, current_animal_type: List[TypeOfSpecificAnimal]):
         for this_animal_type in current_animal_type:
             try:
@@ -102,7 +96,7 @@ class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
                 raise self._error_parser(this_animal_type, exc)
 
     @staticmethod
-    def _error_parser(entity: Animal | TypeOfSpecificAnimal | AnimalVisitedLocation,
+    def _error_parser(entity: Animal | TypeOfSpecificAnimal,
                       exception: IntegrityError) -> ApplicationException:
         database_column = exception.__cause__.__cause__.constraint_name
         if database_column == 'animals_chipper_id_fkey':
@@ -110,9 +104,13 @@ class AnimalRepo(SQLAlchemyRepo, IAnimalRepo, IAnimalVisitedLocationRepo):
         elif database_column == 'animals_chipping_location_id_fkey':
             return PointNotFound(entity.chipping_location_id.to_id())
         elif database_column == 'animal_visited_location_location_point_id_fkey':
-            return PointNotFound(entity.location_point_id.to_id())
+            return PointNotFound(entity.visited_locations[-1].location_point_id.to_id())
         elif database_column == 'type_of_specific_animal_animal_type_id_fkey':
-            return AnimalTypeNotFound(entity.animal_type_id.to_id())
+            if isinstance(entity, TypeOfSpecificAnimal):
+                type_id = entity.animal_type_id.to_id()
+            else:
+                type_id = entity.animal_types[-1].animal_type_id.to_id()
+            return AnimalTypeNotFound(type_id)
 
 
 class AnimalReader(SQLAlchemyRepo, IAnimalReader, IAnimalVisitedLocationReader):

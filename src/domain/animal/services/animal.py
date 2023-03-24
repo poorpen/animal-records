@@ -14,11 +14,12 @@ def set_death_datetime(animal: Animal) -> None:
 
 def check_life_status_conflict(animal: Animal, life_status: str):
     if animal.life_status.to_enum() == LifeStatus.DEAD and life_status == 'ALIVE':
-        raise AttemptToResurrectAnimal(animal.id.to_id())
+        raise AttemptToResurrectAnimal(animal.id)
 
 
-def check_chipping_location(animal: Animal, chipping_location: ChippingLocationID):
+def check_chipping_location(animal: Animal, chipping_location_id: int):
+    chipping_location = ChippingLocationID(chipping_location_id)
     if animal.visited_locations:
         first_visited_location = animal.visited_locations[0]
-        if first_visited_location and first_visited_location.location_point_id == chipping_location:
-            raise ChippingLocationEqualFirstLocation(animal.id.to_id(), chipping_location.to_id())
+        if first_visited_location and first_visited_location.location_point_id.to_id() == chipping_location.to_id():
+            raise ChippingLocationEqualFirstLocation(animal.id, chipping_location)

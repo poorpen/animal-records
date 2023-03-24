@@ -7,7 +7,7 @@ from src.application.account.usecases.account import AccountService
 from src.application.account.usecases.auth import AuthService
 from src.application.animal.usecases.animal import AnimalService
 from src.application.animal.usecases.animal_visited_location import AnimalVisitedLocationService
-from src.application.animal.usecases.type_of_specific_animal import TypeOfSpecificAnimalUseCse
+from src.application.animal.usecases.type_of_specific_animal import TypeOfSpecificAnimalService
 from src.application.animal_type.usecases.animal_type import AnimalTypeService
 from src.application.location_point.usecases.location_point import LocationPointService
 
@@ -59,7 +59,7 @@ def animal_visited_location_getter(uow: UoW = Depends(uow_provider), mapper: Map
 
 
 def type_of_specific_getter(uow: UoW = Depends(uow_provider), mapper: Mapper = Depends(mapper_provider)):
-    return TypeOfSpecificAnimalUseCse(uow=uow, mapper=mapper)
+    return TypeOfSpecificAnimalService(uow=uow, mapper=mapper)
 
 
 def location_point_getter(uow: UoW = Depends(uow_provider), mapper: Mapper = Depends(mapper_provider)):

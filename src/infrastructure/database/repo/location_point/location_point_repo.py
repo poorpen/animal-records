@@ -42,6 +42,7 @@ class LocationPointRepo(SQLAlchemyRepo, ILocationPointRepo):
         location_point_db = self._mapper.load(LocationPointDB, location_point)
         try:
             await self._session.merge(location_point_db)
+            await self._session.flush()
         except IntegrityError as exc:
             raise self._error_parser(location_point, exc)
 

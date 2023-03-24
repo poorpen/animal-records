@@ -1,3 +1,5 @@
+import datetime
+
 from src.application.animal.dto.animal import AnimalDTO, AnimalDTOs
 from src.application.animal.dto.animal_visited_location import AnimalVisitedLocationDTO, AnimalVisitedLocationDTOs
 
@@ -17,11 +19,11 @@ def animal_dto_to_vm(data: AnimalDTO) -> AnimalVM:
         height=data.height,
         gender=data.gender,
         life_status=data.life_status,
-        chipping_datetime=data.chipping_datetime.isoformat(),
+        chipping_datetime=data.chipping_datetime.replace(tzinfo=datetime.timezone.utc).isoformat(),
         visited_locations=data.visited_locations,
         chipper_id=data.chipper_id,
         chipping_location_id=data.chipping_location_id,
-        death_datetime=data.death_datetime.isoformat() if data.death_datetime else None,
+        death_datetime=data.death_datetime.replace(tzinfo=datetime.timezone.utc).isoformat() if data.death_datetime else None,
         by_alies=True
 
     )
@@ -30,7 +32,7 @@ def animal_dto_to_vm(data: AnimalDTO) -> AnimalVM:
 def visited_location_dto_to_vm(data: AnimalVisitedLocationDTO) -> AnimalVisitedLocationVM:
     return AnimalVisitedLocationVM(
         id=data.id,
-        datetime_of_visit=data.datetime_of_visit.isoformat(),
+        datetime_of_visit=data.datetime_of_visit.replace(tzinfo=datetime.timezone.utc).isoformat(),
         location_point_id=data.location_point_id,
         by_alies=True
     )
