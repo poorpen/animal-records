@@ -4,8 +4,8 @@ from datetime import datetime
 
 from src.domain.animal.values_objects.animal_visited_location import VisitedLocationID, LocationPointID
 from src.domain.animal.values_objects.common import AnimalID
-from src.domain.animal.values_objects.animal import Length, Weight, Height, GenderVO, LifeStatusVO, ChippingLocationID, \
-    ChipperID, VisitedLocationList, AnimalTypeList
+from src.domain.animal.values_objects.animal import (Length, Weight, Height, GenderVO, LifeStatusVO, ChippingLocationID,
+    ChipperID)
 from src.domain.animal.enums import LifeStatus, Gender
 from src.domain.animal.entities.animal_visited_location import AnimalVisitedLocation
 from src.domain.animal.entities.type_of_specific_animal import TypeOfSpecificAnimal
@@ -59,7 +59,7 @@ def animal_entity(datetime_utcnow):
                       TypeOfSpecificAnimal(animal_id=AnimalID(1), animal_type_id=AnimalTypeID(1)),
                       TypeOfSpecificAnimal(animal_id=AnimalID(1), animal_type_id=AnimalTypeID(3))
                   ]),
-                  visited_locations=VisitedLocationList([
+                  visited_locations=[
                       AnimalVisitedLocation(id=VisitedLocationID(1), datetime_of_visit=datetime_utcnow,
                                             location_point_id=LocationPointID(1),
                                             animal_id=AnimalID(1)),
@@ -171,7 +171,6 @@ def test_animal_model_to_entity(mapper, animal_model, animal_entity):
 
 def test_animal_model_to_dto(mapper, animal_model, animal_dto):
     result = mapper.load(AnimalDTO, animal_model)
-    print(result)
     # assert result == animal_dto
 
 

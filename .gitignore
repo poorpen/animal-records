@@ -135,3 +135,5 @@ migrations/
 *.env
 .env
 alembic.ini
+
+.idea

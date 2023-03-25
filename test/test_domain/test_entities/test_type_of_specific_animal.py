@@ -2,8 +2,8 @@ import pytest
 
 from src.domain.animal.services.type_of_specific_animal import add_animal_type, change_animal_type, delete_animal_type
 
-from src.domain.animal.exceptions.type_of_specific_animal import AnimalNotHaveThisType, AnimalAlreadyHaveThisTypes, \
-    AnimalAlreadyHaveThisType, AnimalOnlyHasThisType
+from src.domain.animal.exceptions.type_of_specific_animal import (AnimalNotHaveThisType,
+    AnimalAlreadyHaveThisType, AnimalOnlyHasThisType)
 
 from src.domain.animal.entities.type_of_specific_animal import TypeOfSpecificAnimal
 from src.domain.animal.values_objects.common import AnimalID
@@ -56,13 +56,6 @@ def test_check_duplicate_types_positive(animal):
     expected_animal_type = TypeOfSpecificAnimal(animal_id=animal.id, animal_type_id=animal_type_id)
     duplicate_type = animal.check_duplicate_types()
     assert duplicate_type == expected_animal_type
-
-
-def test_change_animal_type_negative_first(animal, old_type_id, new_type_id):
-    animal.update(animal_types=[TypeOfSpecificAnimal(animal_id=animal.id, animal_type_id=AnimalTypeID(new_type_id)),
-                                TypeOfSpecificAnimal(animal_id=animal.id, animal_type_id=AnimalTypeID(old_type_id))])
-    with pytest.raises(AnimalAlreadyHaveThisTypes):
-        change_animal_type(animal, old_type_id, new_type_id)
 
 
 def test_change_animal_type_negative_second(animal, old_type_id, new_type_id):

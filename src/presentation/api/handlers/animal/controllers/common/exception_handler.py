@@ -28,6 +28,5 @@ def animal_exception_handler(_, err: BaseAnimalException | DomainException):
               animal_visited_location_domain.AnimalHasNoCurrentVisitedLocation() |
               animal_visited_location.AnimalVisitedLocationNotFound()):
             return JSONResponse(status_code=404, content={'message': err.message()})
-        case (animal.AnimalHaveDuplicateTypes() | type_of_specific_animal_domain.AnimalAlreadyHaveThisType() |
-              type_of_specific_animal_domain.AnimalAlreadyHaveThisTypes()):
+        case (animal.AnimalHaveDuplicateTypes() | type_of_specific_animal_domain.AnimalAlreadyHaveThisType()):
             return JSONResponse(status_code=409, content={'message': err.message()})

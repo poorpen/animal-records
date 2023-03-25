@@ -13,7 +13,7 @@ from src.domain.animal.services.animal import set_death_datetime, check_life_sta
 
 from src.domain.animal.values_objects.common import AnimalID
 from src.domain.animal.values_objects.animal import LifeStatusVO, GenderVO, Height, Length, Weight, ChipperID, \
-    ChippingLocationID, AnimalTypeList, VisitedLocationList
+    ChippingLocationID
 from src.domain.animal.values_objects.animal_visited_location import VisitedLocationID, LocationPointID
 from src.domain.animal.values_objects.type_of_specific_animal import AnimalTypeID
 
@@ -43,7 +43,7 @@ def test_add_animal_negative_first():
 def test_add_animal_negative_second():
     with pytest.raises(EnumError):
         Animal.create(
-            animal_types=AnimalTypeList([1, 2, 3]),
+            animal_types=[1, 2, 3],
             weight=Weight(1.1),
             length=Length(1.1),
             height=Height(1.1),
@@ -60,7 +60,7 @@ def test_add_animal_negative_third():
         ids[id_index] = -1
         with pytest.raises(InvalidID):
             Animal.create(
-                animal_types=AnimalTypeList([1, 0, 3]),
+                animal_types=[1, 0, 3],
                 weight=Weight(1.1),
                 length=Length(1.1),
                 height=Height(1.1),
@@ -74,7 +74,7 @@ def test_add_animal_negative_third():
 def test_add_animal_negative_fifth():
     with pytest.raises(InvalidID):
         Animal.create(
-            animal_types=AnimalTypeList([1, 0, 3]),
+            animal_types=[1, 0, 3],
             weight=Weight(1.1),
             length=Length(1.1),
             height=Height(1.1),
@@ -91,7 +91,7 @@ def test_add_animal_positive(mock_datetime, animal):
     animal.chipping_datetime = returned_datetime
     mock_datetime.utcnow = mock.Mock(return_value=returned_datetime)
     new_animal = Animal.create(
-        animal_types=AnimalTypeList([1, 2, 3]),
+        animal_types=[1, 2, 3],
         weight=Weight(1.1),
         length=Length(1.1),
         height=Height(1.1),
@@ -100,10 +100,10 @@ def test_add_animal_positive(mock_datetime, animal):
         chipper_id=ChipperID(1)
     )
     expected = animal
-    expected.animal_types = AnimalTypeList([TypeOfSpecificAnimal(animal_id=AnimalID(None), animal_type_id=AnimalTypeID(1)),
+    expected.animal_types = [TypeOfSpecificAnimal(animal_id=AnimalID(None), animal_type_id=AnimalTypeID(1)),
                              TypeOfSpecificAnimal(animal_id=AnimalID(None), animal_type_id=AnimalTypeID(2)),
-                             TypeOfSpecificAnimal(animal_id=AnimalID(None), animal_type_id=AnimalTypeID(3))])
-    expected.visited_locations = VisitedLocationList([None])
+                             TypeOfSpecificAnimal(animal_id=AnimalID(None), animal_type_id=AnimalTypeID(3))]
+    expected.visited_locations = [None]
     assert new_animal == expected
 
 
@@ -139,10 +139,9 @@ def test_life_status_conflict(animal):
 def test_check_chipping_location(animal):
     animal.id = AnimalID(2)
     location_point_id = LocationPointID(22)
-    print(animal.visited_locations)
     animal.chipping_location_id.value = location_point_id
     animal.visited_locations.append(
         AnimalVisitedLocation(id=VisitedLocationID(1), datetime_of_visit=datetime.utcnow(),
                               location_point_id=LocationPointID(22), animal_id=AnimalID(2)))
     with pytest.raises(ChippingLocationEqualFirstLocation):
-        check_chipping_location(animal, location_point_id)
+        check_chipping_location(animal, location_point_id.to_id())

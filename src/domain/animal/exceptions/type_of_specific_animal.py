@@ -28,14 +28,3 @@ class AnimalOnlyHasThisType(BaseAnimalTypeException):
 
     def message(self):
         return f'У животного с animal_id {self.animal_id.to_id()} только один тип и это тип с type_id {self.type_id.to_id()}'
-
-
-@dataclass
-class AnimalAlreadyHaveThisTypes(BaseAnimalDomainException):
-    animal_id: AnimalID
-    old_type: AnimalTypeID
-    new_type: AnimalTypeID
-
-    def message(self):
-        return f'У животного с animal_id {self.animal_id.to_id()} уже имеются типы с ' \
-               f'old_type_id {self.old_type.to_id()} и new_type_id {self.new_type.to_id()}'

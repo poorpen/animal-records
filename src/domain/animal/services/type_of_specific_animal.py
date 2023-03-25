@@ -2,7 +2,7 @@ from src.domain.animal.entities.type_of_specific_animal import TypeOfSpecificAni
 from src.domain.animal.entities.animal import Animal
 
 from src.domain.animal.exceptions.type_of_specific_animal import \
-    AnimalAlreadyHaveThisType, AnimalAlreadyHaveThisTypes, AnimalOnlyHasThisType, AnimalNotHaveThisType
+    AnimalAlreadyHaveThisType, AnimalOnlyHasThisType, AnimalNotHaveThisType
 
 from src.domain.animal.values_objects.type_of_specific_animal import AnimalTypeID
 
@@ -15,11 +15,11 @@ def add_animal_type(animal: Animal, type_id: int) -> None:
 
 
 def change_animal_type(animal: Animal, old_type_int: int, new_type_id: int) -> None:
-    old_animal_type = animal.get_animal_type(old_type_int)
     new_type_vo = AnimalTypeID(new_type_id)
     if animal.check_exist_animal_type(new_type_vo.to_id()):
         raise AnimalAlreadyHaveThisType(animal_id=animal.id, type_id=new_type_vo)
 
+    old_animal_type = animal.get_animal_type(old_type_int)
     index_animal_type = animal.animal_types.index(old_animal_type)
     animal.animal_types[index_animal_type].update(animal_type_id=new_type_vo)
 
